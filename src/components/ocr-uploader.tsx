@@ -8,7 +8,7 @@ type OcrUploaderProps = {
   targetForm?: 'onboarding' | 'expense' | 'checkin';
 };
 
-export default function OcrUploader({ onResult, targetForm = 'checkin' }: OcrUploaderProps) {
+export default function OcrUploader({ onResult, targetForm = 'expense' }: OcrUploaderProps) {
   const [processing, setProcessing] = React.useState(false);
   const [preview, setPreview] = React.useState<string | null>(null);
   const fileRef = React.useRef<HTMLInputElement | null>(null);
@@ -60,10 +60,11 @@ export default function OcrUploader({ onResult, targetForm = 'checkin' }: OcrUpl
         console.warn('tesseract.js not available; skipping OCR');
       }
 
-      // extracted text is already in 'text' variable at this point from Tesseract
+      console.info('[OcrUploader] extracted text:', text);
 
-
-      // send extracted text to parse-fields (same flow as MicRecorder)
+      if (!text) {
+        console.warn('[OcrUploader] no text extracted from image');
+      }
       const { getApiUrl } = await import('@/lib/utils');
       const parseRes = await fetch(getApiUrl('api/parse-fields'), {
         method: 'POST',

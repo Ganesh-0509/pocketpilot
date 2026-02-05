@@ -145,10 +145,11 @@ export default function CheckInPage() {
                         toast({ title: 'Expense added from voice', description: `${parsed.description} — ${cat}` });
                         form.reset({ amount: 0, category: '', description: '' });
                       } else {
+                        const reason = !parsed ? 'Could not parse voice' : (!parsed.description ? 'Missing description' : 'Missing amount');
                         toast({
                           variant: "destructive",
                           title: "Voice capture failed",
-                          description: "We couldn't extract the amount or description. Please try again.",
+                          description: `${reason}. Try speaking clearly: "Spent 500 on dinner".`,
                         });
                       }
                     }}
@@ -169,10 +170,11 @@ export default function CheckInPage() {
                       toast({ title: 'Expense added from image', description: `${parsed.description} — ${cat}` });
                       form.reset({ amount: 0, category: '', description: '' });
                     } else {
+                      const reason = !parsed ? 'Could not parse text' : (!parsed.description ? 'Missing description' : 'Missing amount');
                       toast({
                         variant: "destructive",
-                        title: "OCR failed",
-                        description: "Could not read the receipt details. Try a clearer photo.",
+                        title: "OCR processing failed",
+                        description: `${reason}. Try a clearer photo or manual entry.`,
                       });
                     }
                   }}
