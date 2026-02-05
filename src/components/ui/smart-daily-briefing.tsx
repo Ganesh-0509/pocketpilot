@@ -16,6 +16,7 @@ export function SmartDailyBriefing() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isReasoningOpen, setIsReasoningOpen] = useState(false);
+    const [lastInputHash, setLastInputHash] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchBriefing() {
@@ -25,9 +26,6 @@ export function SmartDailyBriefing() {
             }
 
             try {
-                setIsLoading(true);
-                setError(null);
-
                 const now = new Date();
                 const dayOfWeek = format(now, 'EEEE');
                 const daysInMonth = getDaysInMonth(now);
@@ -40,6 +38,24 @@ export function SmartDailyBriefing() {
                     .filter(t => new Date(t.date) >= monthStart)
                     .reduce((sum, t) => sum + t.amount, 0);
                 const remainingMonthlyBudget = profile.monthlyWants - monthlySpending;
+
+                // Create a hash of the current state to avoid redundant calls
+                const todaysSpending = getTodaysSpending();
+                const currentHash = JSON.stringify({
+                    income: profile.income,
+                    limit: profile.dailySpendingLimit,
+                    spent: todaysSpending,
+                    remaining: remainingMonthlyBudget,
+                    txCount: transactions.length
+                });
+
+                if (currentHash === lastInputHash && briefing) {
+                    setIsLoading(false);
+                    return;
+                }
+
+                setIsLoading(true);
+                setError(null);
 
                 // Get last 30 days of transactions
                 const thirtyDaysAgo = subDays(now, 30);
@@ -58,36 +74,31 @@ export function SmartDailyBriefing() {
                 // Pre-calculate run out date for accuracy
                 let runOutDate: string | undefined = undefined;
 
-                // Calculate average daily spending over last 30 days (or detailed history if shorter)
+                // Calculate average daily spending over last 30 days
                 const totalRecentSpent = recentRawTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-                // Determine divisor: Use actual days since oldest recent transaction, capped at 30, min 1
                 let divisor = 30;
                 try {
                     if (recentRawTransactions.length > 0) {
-                        // Safely map dates
                         const dates = recentRawTransactions
                             .map(t => parseISO(t.date).getTime())
                             .filter(t => !isNaN(t));
 
                         if (dates.length > 0) {
                             const earliestDate = new Date(Math.min(...dates));
-                            // Calculate days difference
                             const diffTime = Math.abs(now.getTime() - earliestDate.getTime());
                             const daysDiff = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
                             divisor = Math.min(30, daysDiff);
                         }
                     }
                 } catch (e) {
-                    console.warn("Date calculation error", e);
-                    divisor = 30; // Fallback
+                    divisor = 30;
                 }
 
                 const avgDailySpend = divisor > 0 ? totalRecentSpent / divisor : 0;
 
                 if (avgDailySpend > profile.dailySpendingLimit && remainingMonthlyBudget > 0 && avgDailySpend > 0) {
                     const daysUntilEmpty = remainingMonthlyBudget / avgDailySpend;
-                    // Cap projection to reasonable timeframe (e.g. 1 year) to prevent formatting errors
                     if (daysUntilEmpty < 365) {
                         const runOutDateObj = addDays(now, Math.ceil(daysUntilEmpty));
                         runOutDate = format(runOutDateObj, 'MMMM do');
@@ -99,7 +110,7 @@ export function SmartDailyBriefing() {
                 const input: DailyBriefingInput = {
                     income: profile.income,
                     dailySpendingLimit: profile.dailySpendingLimit,
-                    todaysSpending: getTodaysSpending(),
+                    todaysSpending,
                     dayOfWeek,
                     daysLeftInMonth,
                     remainingMonthlyBudget,
@@ -109,10 +120,10 @@ export function SmartDailyBriefing() {
 
                 const result = await getDailyBriefing(input);
                 setBriefing(result);
+                setLastInputHash(currentHash);
             } catch (err) {
                 console.error('Failed to fetch daily briefing:', err);
                 setError('Could not load your daily briefing');
-                // Set fallback with reasoning
                 const spendable = Math.max(0, (profile?.dailySpendingLimit || 0) - getTodaysSpending());
                 setBriefing({
                     spendableToday: spendable,
@@ -125,7 +136,7 @@ export function SmartDailyBriefing() {
         }
 
         fetchBriefing();
-    }, [profile, transactions, getTodaysSpending]);
+    }, [profile, transactions, getTodaysSpending, lastInputHash, briefing]);
 
     if (!profile) {
         return null;

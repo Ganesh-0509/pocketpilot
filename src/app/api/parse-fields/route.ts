@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 
     // --- API Configuration (Generative Models endpoint) ---
     const API_BASE = process.env.PARSE_FIELDS_API_BASE || 'https://generativelanguage.googleapis.com/v1';
-  const primaryModel = (process.env.PARSE_FIELDS_MODEL || 'gemini-2.5-flash').replace(/^models\//, '');
+    const primaryModel = (process.env.PARSE_FIELDS_MODEL || 'gemini-2.0-flash').replace(/^models\//, '');
     const urlForModel = (modelId: string) => `${API_BASE}/models/${modelId}:generateContent?key=${encodeURIComponent(
       apiKey
     )}`;
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
           .filter(Boolean);
 
       for (const alt of fallbackList) {
-  const altId = alt.replace(/^models\//, '');
+        const altId = alt.replace(/^models\//, '');
         console.info('[parse-fields] trying fallback model', altId);
         const attempt = await callModel(altId);
         console.info('[parse-fields] fallback attempt result', {

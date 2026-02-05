@@ -9,8 +9,8 @@
  * - ConversationalFinanceAssistantOutput - The return type for the conversationalFinanceAssistant function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const ConversationalFinanceAssistantInputSchema = z.object({
   query: z.string().describe('The user query related to financial advice or scenario.'),
@@ -48,9 +48,9 @@ export async function conversationalFinanceAssistant(
 
 const prompt = ai.definePrompt({
   name: 'conversationalFinanceAssistantPrompt',
-  input: {schema: ConversationalFinanceAssistantInputSchema},
-  output: {schema: ConversationalFinanceAssistantOutputSchema},
-  model: 'googleai/gemini-2.5-flash',
+  input: { schema: ConversationalFinanceAssistantInputSchema },
+  output: { schema: ConversationalFinanceAssistantOutputSchema },
+  model: 'googleai/gemini-2.0-flash',
   prompt: `You are a helpful and friendly AI financial assistant called FinMate. Your goal is to provide clear, actionable financial advice based on the user's specific situation.
 
 You will be given a user's profile, their financial context, and a specific query. Analyze all this information to provide a comprehensive response.

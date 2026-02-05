@@ -315,18 +315,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const getTodaysSpending = () => {
+  const getTodaysSpending = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     return transactions
       .filter(t => t.date.startsWith(today))
       .reduce((sum, t) => sum + t.amount, 0);
-  };
+  }, [transactions]);
 
-  const getTotalGoalContributions = () => {
+  const getTotalGoalContributions = useCallback(() => {
     return goals.reduce((sum, g) => sum + g.monthlyContribution, 0);
-  }
+  }, [goals]);
 
-  const getCumulativeDailySavings = () => {
+  const getCumulativeDailySavings = useCallback(() => {
     if (!profile || transactions.length === 0) {
       return 0;
     }
@@ -355,7 +355,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return cumulativeSavings;
-  };
+  }, [profile, transactions]);
 
   const contributeToGoal = (goalId: string, amount: number) => {
     const newContribution: Contribution = {

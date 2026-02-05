@@ -92,13 +92,13 @@ export default function CheckInPage() {
   function onSubmit(data: ExpenseValues) {
     addTransaction(data);
     form.reset({ amount: 0, category: '', description: '', date: data.date });
-    
+
     if (profile && (todaysSpending + data.amount) > profile.dailySpendingLimit && isSameDay(parseISO(data.date || ''), new Date())) {
-        toast({
-            variant: "destructive",
-            title: 'Daily Limit Exceeded!',
-            description: `You've spent ₹${(todaysSpending + data.amount).toFixed(2)} today, which is over your ₹${profile.dailySpendingLimit.toFixed(2)} limit.`,
-        });
+      toast({
+        variant: "destructive",
+        title: 'Daily Limit Exceeded!',
+        description: `You've spent ₹${(todaysSpending + data.amount).toFixed(2)} today, which is over your ₹${profile.dailySpendingLimit.toFixed(2)} limit.`,
+      });
     }
   }
 
@@ -128,9 +128,28 @@ export default function CheckInPage() {
             <CardDescription>Logging for {format(parseISO(watchedDate), "PPP")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 flex flex-col items-center">
-              <div className="w-full flex justify-end gap-2 mb-3">
-                <MicRecorder
+            <div className="mb-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 p-2 rounded-lg bg-muted/40">
+                <div className="flex-1 w-full min-w-0">
+                  <MicRecorder
+                    targetForm="expense"
+                    onResult={({ text, parsed }) => {
+                      if (parsed && parsed.description && parsed.amount) {
+                        const cat = parsed.categoryNormalized || parsed.category || 'Other';
+                        addTransaction({
+                          description: parsed.description,
+                          amount: Number(parsed.amount),
+                          category: cat,
+                          date: watchedDate,
+                        });
+                        toast({ title: 'Expense added from voice', description: `${parsed.description} — ${cat}` });
+                        form.reset({ amount: 0, category: '', description: '', date: watchedDate });
+                      }
+                    }}
+                  />
+                </div>
+                <div className="h-4 w-px bg-border hidden sm:block" />
+                <OcrUploader
                   targetForm="expense"
                   onResult={({ text, parsed }) => {
                     if (parsed && parsed.description && parsed.amount) {
@@ -141,26 +160,8 @@ export default function CheckInPage() {
                         category: cat,
                         date: watchedDate,
                       });
-                      toast({ title: 'Expense added from voice', description: `${parsed.description} — ${cat}` });
-                      form.reset({ amount: 0, category: '', description: '', date: watchedDate });
-                      return;
-                    }
-                  }}
-                />
-                <OcrUploader
-                  targetForm="expense"
-                  onResult={({ text, parsed }) => {
-                    if (parsed && parsed.description && parsed.amount) {
-                      const cat = parsed.categoryNormalized || parsed.category || 'Other';
-                      addTransaction({ 
-                        description: parsed.description, 
-                        amount: Number(parsed.amount), 
-                        category: cat,
-                        date: watchedDate,
-                      });
                       toast({ title: 'Expense added from image', description: `${parsed.description} — ${cat}` });
                       form.reset({ amount: 0, category: '', description: '', date: watchedDate });
-                      return;
                     }
                   }}
                 />
@@ -312,11 +313,11 @@ export default function CheckInPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       formatter={(v: number) => `₹${v.toFixed(2)}`}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                     />
-                    <Legend verticalAlign="bottom" height={36}/>
+                    <Legend verticalAlign="bottom" height={36} />
                   </RechartsPieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -392,7 +393,7 @@ export default function CheckInPage() {
           </Card>
         </div>
       </div>
-      
+
       <EndOfDaySummary />
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

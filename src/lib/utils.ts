@@ -9,17 +9,16 @@ export function cn(...inputs: ClassValue[]) {
 export const API_BASE_URL = 'https://kart-i-quo-fujv.onrender.com';
 
 export function getApiUrl(path: string): string {
-  // If running in a browser environment without a relative API (e.g. mobile static export), use the full URL.
-  // We can detect this if the window.location.protocol is file: (Capacitor default sometimes) or simply use the env/const.
-  // For this build, we want mobile usage to always point to the server.
-  // However, local web dev (localhost:3000) should still use relative paths if the proxy is set up or api is local.
-  // Since we are moving the API folder out during mobile build, relative paths WON'T work for mobile build anyway.
-
-  // Simple logic: If we are in a static export (Capacitor), we need the absolute URL.
-  // For now, let's prefix it if it starts with '/api'.
-
   if (path.startsWith('/')) {
     path = path.substring(1);
+  }
+
+  // Check if we are in a browser and running on localhost
+  if (typeof window !== 'undefined') {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+      return `/${path}`;
+    }
   }
 
   return `${API_BASE_URL}/${path}`;

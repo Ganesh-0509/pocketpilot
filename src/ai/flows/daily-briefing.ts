@@ -43,7 +43,7 @@ const prompt = ai.definePrompt({
     name: 'dailyBriefingPrompt',
     input: { schema: DailyBriefingInputSchema },
     output: { schema: DailyBriefingOutputSchema },
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-2.0-flash',
     prompt: `
             Role: You are a hyper-concise, proactive financial assistant (Finmate).
             Goal: Give the user ONE clear number to focus on today and ONE behavior to watch.

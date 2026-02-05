@@ -9,8 +9,8 @@
  * - SpendingAlertsOutput - The return type for the getSpendingAlerts function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const SpendingAlertsInputSchema = z.object({
   income: z.number().describe("The user's monthly income."),
@@ -21,9 +21,9 @@ const SpendingAlertsInputSchema = z.object({
     monthlyContribution: z.number(),
   })).describe("The user's financial goals."),
   expensesData: z.array(z.object({
-      amount: z.number(),
-      category: z.string(),
-      date: z.string(),
+    amount: z.number(),
+    category: z.string(),
+    date: z.string(),
   })).describe('Historical expenses data.'),
 });
 export type SpendingAlertsInput = z.infer<typeof SpendingAlertsInputSchema>;
@@ -39,9 +39,9 @@ export async function getSpendingAlerts(input: SpendingAlertsInput): Promise<Spe
 
 const prompt = ai.definePrompt({
   name: 'spendingAlertsPrompt',
-  input: {schema: SpendingAlertsInputSchema},
-  output: {schema: SpendingAlertsOutputSchema},
-  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpendingAlertsInputSchema },
+  output: { schema: SpendingAlertsOutputSchema },
+  model: 'googleai/gemini-2.0-flash',
   prompt: `You are FinMate's proactive financial analyst. Your job is to analyze a user's spending habits and provide a concise, actionable suggestion for the next week.
 
 ## User's Financial Profile:
@@ -85,7 +85,7 @@ const spendingAlertsFlow = ai.defineFlow(
   },
   async input => {
     try {
-      const {output} = await prompt(input);
+      const { output } = await prompt(input);
       if (!output) {
         throw new Error('AI model returned no output for spending alerts.');
       }

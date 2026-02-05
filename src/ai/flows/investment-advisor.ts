@@ -53,7 +53,7 @@ const prompt = ai.definePrompt({
   name: 'investmentAdvisorPrompt',
   input: { schema: InvestmentAdvisorInputSchema },
   output: { schema: InvestmentAdvisorOutputSchema },
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-2.0-flash',
   prompt: `You are an expert financial advisor specializing in Indian investments and tax optimization. Based on the user's profile, provide personalized investment recommendations.
 
 ## User Profile

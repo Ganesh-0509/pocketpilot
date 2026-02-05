@@ -33,31 +33,27 @@ export function DashboardHeader() {
     if (!emailOrName) return 'U';
     // If it's a name with spaces, use initials of first/last name
     if (emailOrName.includes(' ')) {
-      const parts = emailOrName.split(' ');
-      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+        const parts = emailOrName.split(' ');
+        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
     }
     // Otherwise, use the first letter (for email or single name)
     return emailOrName.charAt(0).toUpperCase();
   }
-
+  
   const avatarIdentifier = profile?.name || user?.displayName || user?.email || 'user';
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 md:h-20 items-center gap-4 border-b bg-background px-4 md:px-6 safe-pt">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
       <SidebarTrigger className="md:hidden" />
       <h1 className="flex-1 text-xl font-semibold tracking-tight">{title}</h1>
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 mr-2">
-          <ExportReport />
-          <PdfExport />
-        </div>
-        <div className="hidden sm:flex flex-col items-end mr-2">
-          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Welcome back,</span>
-          <span className="text-sm font-bold text-primary">
-            {profile?.name?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'User'}
-          </span>
-        </div>
+      <div className="flex items-center gap-2 mr-3">
+        <ExportReport />
+        <PdfExport />
       </div>
+      <Avatar>
+        <AvatarImage src={`https://avatar.vercel.sh/${avatarIdentifier}.png`} />
+        <AvatarFallback>{getInitials(avatarIdentifier)}</AvatarFallback>
+      </Avatar>
     </header>
   );
 }

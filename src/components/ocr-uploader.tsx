@@ -60,19 +60,8 @@ export default function OcrUploader({ onResult, targetForm = 'checkin' }: OcrUpl
         console.warn('tesseract.js not available; skipping OCR');
       }
 
-      // optional: upload image to server for storage (non-blocking)
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const b64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-        const { getApiUrl } = await import('@/lib/utils'); // Dynamically import to avoid circular deps if any (safe here)
-        fetch(getApiUrl('api/ocr/save'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: b64, mimeType: file.type }),
-        }).catch(() => { });
-      } catch (e) {
-        // ignore upload errors
-      }
+      // extracted text is already in 'text' variable at this point from Tesseract
+
 
       // send extracted text to parse-fields (same flow as MicRecorder)
       const { getApiUrl } = await import('@/lib/utils');
@@ -92,7 +81,7 @@ export default function OcrUploader({ onResult, targetForm = 'checkin' }: OcrUpl
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 flex-shrink-0">
       <input
         ref={fileRef}
         type="file"
@@ -104,16 +93,14 @@ export default function OcrUploader({ onResult, targetForm = 'checkin' }: OcrUpl
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        className="px-3 py-2 rounded-md border bg-black text-sm shadow-sm"
-        aria-busy={processing}
+        className="px-3 py-2 rounded-md border bg-primary text-primary-foreground text-xs shadow-sm hover:opacity-90 transition-opacity whitespace-nowrap"
+        disabled={processing}
       >
-        {processing ? 'Scanning…' : 'Upload image (OCR)'}
+        {processing ? 'Scanning…' : 'OCR'}
       </button>
 
-      {preview ? (
-        <img src={preview} alt="preview" className="h-12 object-contain rounded" />
-      ) : (
-        <div className="h-12 w-24 bg-gray-50 rounded flex items-center justify-center text-xs text-muted-foreground">Image preview</div>
+      {preview && (
+        <img src={preview} alt="preview" className="h-8 w-8 object-cover rounded border" />
       )}
     </div>
   );

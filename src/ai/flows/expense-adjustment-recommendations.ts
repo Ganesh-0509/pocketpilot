@@ -8,11 +8,11 @@
  * - ExpenseAdjustmentRecommendationsOutput - The return type for the getExpenseAdjustmentRecommendations function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const ExpenseAdjustmentRecommendationsInputSchema = z.object({
-  income: z.number().describe('The user’s total monthly income in Indian Rupees.'),  role: z.enum(['Student', 'Professional', 'Housewife']).describe("The user's role for tailored advice."),  fixedExpenses: z.array(
+  income: z.number().describe('The user’s total monthly income in Indian Rupees.'), role: z.enum(['Student', 'Professional', 'Housewife']).describe("The user's role for tailored advice."), fixedExpenses: z.array(
     z.object({
       name: z.string().describe('The name of the fixed expense.'),
       amount: z.number().describe('The amount of the fixed expense in Indian Rupees.'),
@@ -56,9 +56,9 @@ export async function getExpenseAdjustmentRecommendations(
 
 const prompt = ai.definePrompt({
   name: 'expenseAdjustmentRecommendationsPrompt',
-  input: {schema: ExpenseAdjustmentRecommendationsInputSchema},
-  output: {schema: ExpenseAdjustmentRecommendationsOutputSchema},
-  model: 'googleai/gemini-2.5-flash',
+  input: { schema: ExpenseAdjustmentRecommendationsInputSchema },
+  output: { schema: ExpenseAdjustmentRecommendationsOutputSchema },
+  model: 'googleai/gemini-2.0-flash',
   prompt: `You are a personal finance advisor. Your task is to provide a list of specific and actionable tips to help a user adjust their spending to meet their financial goals.
 
 ## User's Financial Profile:
@@ -100,7 +100,7 @@ const expenseAdjustmentRecommendationsFlow = ai.defineFlow(
   },
   async input => {
     try {
-      const {output} = await prompt(input);
+      const { output } = await prompt(input);
       if (!output) {
         throw new Error('AI model returned no output.');
       }
