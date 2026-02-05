@@ -88,7 +88,12 @@ export function calculateRoleBudget(
 
   const dailySpendingLimit = wants > 0 ? wants / 30 : 0;
 
-  return { monthlyNeeds: needs, monthlyWants: wants, monthlySavings: savings, dailySpendingLimit };
+  return {
+    monthlyNeeds: Math.round(needs * 100) / 100,
+    monthlyWants: Math.round(wants * 100) / 100,
+    monthlySavings: Math.round(savings * 100) / 100,
+    dailySpendingLimit: Math.round(dailySpendingLimit * 100) / 100
+  };
 }
 
 /**

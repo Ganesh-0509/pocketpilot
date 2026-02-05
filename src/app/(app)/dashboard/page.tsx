@@ -105,12 +105,12 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard
           title="Monthly Income"
-          value={`₹${income.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+          value={`₹${income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={<IndianRupee className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
           title="Overall Spending"
-          value={`₹${overallSpending.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+          value={`₹${overallSpending.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />}
           change={spendingVsIncome}
           changeType={income > overallSpending ? 'increase' : 'decrease'}
@@ -118,7 +118,7 @@ export default function DashboardPage() {
         <Link href="/goals" className="block">
           <StatCard
             title="Total Goal Savings"
-            value={`₹${totalGoalSaved.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+            value={`₹${totalGoalSaved.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             icon={<Target className="h-4 w-4 text-muted-foreground" />}
           />
         </Link>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="flex-grow flex flex-col justify-between pt-0">
             <div className="py-4">
-              <div className="text-4xl font-bold tracking-tight">₹{cumulativeSavings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+              <div className="text-4xl font-bold tracking-tight">₹{cumulativeSavings.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               <p className={`text-xs mt-2 flex items-center font-medium ${todaysSavings >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {todaysSavings >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
                 {todaysSavings >= 0 ? `₹${todaysSavings.toFixed(2)} saved today` : `₹${Math.abs(todaysSavings).toFixed(2)} limit exceeded today`}
@@ -176,7 +176,7 @@ export default function DashboardPage() {
             <CardContent className="flex-grow flex flex-col justify-between pt-0">
               <div className="py-4">
                 <div className="text-4xl font-bold tracking-tight">
-                  ₹{(emergencyFund?.current || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹{(emergencyFund?.current || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 {emergencyFund && emergencyFund.target > 0 && (
                   <div className="mt-3 space-y-1.5">

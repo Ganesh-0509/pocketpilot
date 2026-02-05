@@ -81,7 +81,7 @@ const prompt = ai.definePrompt({
             - reasoning: 2-3 sentences explaining today's impact relative to the fixed daily limit. Use numbers clearly.
             - behaviorNudge: Pattern-based insight for {{dayOfWeek}}.
 
-            All amounts in Indian Rupees (₹). No motivational talk.`,
+            All amounts in Indian Rupees (₹). Round ALL currency values to 2 decimal places. No motivational talk.`,
 });
 
 const dailyBriefingFlow = ai.defineFlow(

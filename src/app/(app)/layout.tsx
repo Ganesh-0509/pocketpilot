@@ -21,7 +21,6 @@ import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, S
 import { DashboardHeader } from '@/components/dashboard-header';
 import Chatbot from '@/components/chatbot';
 import { Logo } from '@/components/logo';
-import ReminderSystem from '@/components/reminder-system';
 
 const navItems = [
   { href: '/dashboard', icon: <LayoutGrid />, label: 'Dashboard' },
@@ -83,7 +82,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-secondary/50">
+      <div className="flex min-h-screen bg-secondary/50">
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2">
@@ -135,15 +134,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <div className="flex-1 flex flex-col w-full">
+        <div className="flex-1 flex flex-col">
+          <DashboardHeader />
           <SidebarInset>
-            <DashboardHeader />
             <main className="flex-1 p-4 md:p-6 lg:p-8">
               {children}
             </main>
           </SidebarInset>
         </div>
-        <ReminderSystem />
         <Chatbot />
       </div>
     </SidebarProvider>
