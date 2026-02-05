@@ -98,7 +98,9 @@ export default function BadgesPage() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
                     <h1 className="text-4xl font-bold tracking-tight">Financial Hall of Fame</h1>
-                    <p className="text-lg text-muted-foreground">Level up your financial discipline and collect unique badges.</p>
+                    <p className="text-muted-foreground text-lg italic">
+                        Level up your financial discipline and collect unique badges.
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-4">
