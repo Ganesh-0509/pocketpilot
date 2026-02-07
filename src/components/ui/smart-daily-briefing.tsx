@@ -25,6 +25,7 @@ export function SmartDailyBriefing() {
                 return;
             }
 
+            let currentHash = '';
             try {
                 const now = new Date();
                 const dayOfWeek = format(now, 'EEEE');
@@ -51,7 +52,7 @@ export function SmartDailyBriefing() {
 
                 // Create a hash of the current state to avoid redundant calls
                 const todaysSpending = getTodaysSpending();
-                const currentHash = JSON.stringify({
+                currentHash = JSON.stringify({
                     income: profile.income,
                     limit: profile.dailySpendingLimit,
                     spent: todaysSpending,
@@ -151,6 +152,7 @@ export function SmartDailyBriefing() {
             } catch (err) {
                 console.error('Failed to fetch daily briefing:', err);
                 setError('Could not load your daily briefing');
+                setLastInputHash(currentHash); // Avoid infinite loop on errors
                 const spendable = Math.max(0, (profile?.dailySpendingLimit || 0) - getTodaysSpending());
                 setBriefing({
                     spendableToday: spendable,
@@ -163,7 +165,7 @@ export function SmartDailyBriefing() {
         }
 
         fetchBriefing();
-    }, [profile, transactions, getTodaysSpending, lastInputHash, briefing]);
+    }, [profile, transactions, getTodaysSpending]);
 
     if (!profile) {
         return null;

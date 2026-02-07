@@ -1,11 +1,17 @@
 export const InvestmentAdvisorInputSchema = {};
 export type InvestmentAdvisorInput = any;
 export type InvestmentAdvisorOutput = {
-    recommendation: string;
-    riskAnalysis: string;
-    suggestedAllocation: any;
+    recommendations: any[];
+    taxSavingStrategies: any[];
+    overallAdvice: string;
 };
 
-export async function getInvestmentAdvice(input: any): Promise<InvestmentAdvisorOutput> {
-    throw new Error('Investment advice requires online connectivity.');
+export async function investmentAdvisor(
+    input: InvestmentAdvisorInput
+): Promise<InvestmentAdvisorOutput> {
+    return {
+        recommendations: [],
+        taxSavingStrategies: [],
+        overallAdvice: 'Investment advice requires online connectivity.',
+    };
 }

@@ -84,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-secondary/50">
         <Sidebar>
-          <SidebarHeader>
+          <SidebarHeader className="safe-pt">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                 <img
