@@ -13,7 +13,6 @@ import {
   CreditCard,
   ShieldAlert,
   Trophy,
-  TrendingUp,
   HelpCircle,
 } from 'lucide-react';
 import { useApp } from '@/hooks/use-app';
@@ -30,7 +29,6 @@ const navItems = [
   { href: '/fixed-expenses', icon: <CreditCard />, label: 'Fixed Expenses' },
   { href: '/emergency-fund', icon: <ShieldAlert />, label: 'Emergency Fund' },
   { href: '/badges', icon: <Trophy />, label: 'Badges' },
-  { href: '/investments', icon: <TrendingUp />, label: 'Investments' },
   { href: '/help', icon: <HelpCircle />, label: 'Help & Guide' },
 ];
 
@@ -49,7 +47,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!authLoaded || !user) return;
-    const hasCompletedOnboarding = profile && profile.role;
+    const hasCompletedOnboarding = profile && profile.userType;
     const isOnboardingPage = pathname === '/onboarding';
 
     if (hasCompletedOnboarding && isOnboardingPage) {
@@ -67,7 +65,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (user === null || !profile?.role) {
+  if (user === null || !profile?.userType) {
     // Show onboarding page if applicable, otherwise show a loading state while redirects occur
     if (pathname === '/onboarding') {
       return <>{children}</>;
@@ -95,7 +93,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   className="object-contain"
                 />
               </div>
-              <span className="font-bold text-lg text-[#4ADE80]">FinMate</span>
+              <span className="font-bold text-lg text-[#4ADE80]">PocketPilot</span>
             </div>
           </SidebarHeader>
           <SidebarContent>

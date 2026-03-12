@@ -53,7 +53,7 @@ const prompt = ai.definePrompt({
     output: { schema: DailyBriefingOutputSchema },
     model: 'googleai/gemini-2.0-flash',
     prompt: `
-            Role: You are Finmate, a precise financial status analyser.
+            Role: You are PocketPilot, a precise financial status analyser for students.
             Goal: Provide a deeply accurate "Daily Status" based ONLY on real logs and the safe spending limit formula.
 
             User Context:

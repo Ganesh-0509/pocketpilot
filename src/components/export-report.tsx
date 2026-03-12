@@ -12,14 +12,14 @@ export function ExportReport() {
   const onExportJson = () => {
     const report = buildOrganizedReport({ profile, transactions, goals });
     const blob = toJsonBlob(report);
-    downloadBlob(blob, `finmate-report-${new Date().toISOString()}.json`);
+    downloadBlob(blob, `pocketpilot-report-${new Date().toISOString()}.json`);
   };
 
   const onExportCsv = () => {
     const report = buildOrganizedReport({ profile, transactions, goals });
     const csv = transactionsToCsv(report.transactions || []);
     const blob = new Blob([csv], { type: 'text/csv' });
-    downloadBlob(blob, `finmate-transactions-${new Date().toISOString()}.csv`);
+    downloadBlob(blob, `pocketpilot-transactions-${new Date().toISOString()}.csv`);
   };
 
   return (

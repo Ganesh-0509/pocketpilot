@@ -1,6 +1,6 @@
-# 📱 FinMate – Intelligent Personal Finance Manager
+# 📱 PocketPilot – Student Financial Survival Platform
 
-FinMate is a **role‑based, AI‑powered personal finance management platform** designed to make budgeting, expense tracking, savings, and financial planning simple, intelligent, and highly personalized. Unlike generic finance apps, FinMate adapts its behavior based on the user’s role (Student, Professional, or Housewife) and continuously provides actionable insights using AI.
+PocketPilot is a **student-focused financial management platform** designed specifically for college students to master budgeting, track pocket money, and build sustainable financial habits. Unlike generic finance apps, PocketPilot is optimized for the unique challenges of student life - from managing mess fees and hostel expenses to saving for semester fees and personal goals.
 
 ---
 

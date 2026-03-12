@@ -118,7 +118,7 @@ export default function Chatbot() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div className="flex items-center gap-3">
                 <Bot className="h-6 w-6 text-primary" />
-                <CardTitle>FinMate Assistant</CardTitle>
+                <CardTitle>PocketPilot Assistant</CardTitle>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
                 <X className="h-4 w-4" />

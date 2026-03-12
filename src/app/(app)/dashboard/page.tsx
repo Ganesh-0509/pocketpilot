@@ -84,8 +84,8 @@ export default function DashboardPage() {
   if (!profile) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-2xl font-bold mb-4">Welcome to FinMate!</h2>
-        <p className="text-muted-foreground mb-6">Please complete the onboarding to start managing your finances.</p>
+        <h2 className="text-2xl font-bold mb-4">Welcome to PocketPilot!</h2>
+        <p className="text-muted-foreground mb-6">Please complete the onboarding to start managing your student finances.</p>
         <Button asChild>
           <Link href="/onboarding">Start Onboarding</Link>
         </Button>
@@ -95,42 +95,64 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard Overview</h2>
-      </div>
+      {/* Hero Section - Daily Safe-to-Spend */}
+      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20">
+        <CardContent className="pt-8">
+          <div className="text-center space-y-2">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">Today's Safe-to-Spend</p>
+            <div className="text-6xl md:text-7xl font-bold text-primary">
+              ₹{(dailySpendingLimit - todaysSpending).toFixed(0)}
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <span>Limit: ₹{dailySpendingLimit.toFixed(0)}</span>
+              <span>•</span>
+              <span>Spent: ₹{todaysSpending.toFixed(0)}</span>
+            </div>
+            {todaysSpending > dailySpendingLimit && (
+              <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive font-medium">You've exceeded today's limit by ₹{(todaysSpending - dailySpendingLimit).toFixed(0)}</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Smart Daily Briefing */}
       <SmartDailyBriefing />
 
-
+      {/* Key Metrics */}
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard
-          title="Monthly Income"
-          value={`₹${income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={<IndianRupee className="h-4 w-4 text-muted-foreground" />}
+          title="Monthly Budget Left"
+          value={`₹${(monthlyWants - transactions.filter(t => {
+            const tDate = new Date(t.date);
+            const now = new Date();
+            return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+          }).reduce((sum, t) => sum + t.amount, 0)).toLocaleString('en-IN', { minimumFractionDigits: 0 })}`}
+          icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
-          title="Overall Spending"
-          value={`₹${overallSpending.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />}
-          change={spendingVsIncome}
-          changeType={income > overallSpending ? 'increase' : 'decrease'}
+          title="Current Streak"
+          value={`${profile.gamification?.currentStreak || 0} days`}
+          icon={<Target className="h-4 w-4 text-muted-foreground" />}
         />
         <Link href="/goals" className="block">
           <StatCard
             title="Total Goal Savings"
-            value={`₹${totalGoalSaved.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            value={`₹${totalGoalSaved.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`}
             icon={<Target className="h-4 w-4 text-muted-foreground" />}
           />
         </Link>
       </div>
 
+      {/* Total Daily Savings & Emergency Fund */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="flex flex-col border-primary/20 bg-primary/5 shadow-sm overflow-hidden">
           <div className="h-1 w-full bg-primary" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-lg font-bold">Total Daily Savings</CardTitle>
-              <CardDescription className="text-xs">Buffered from daily unspent limits.</CardDescription>
+              <CardDescription className="text-xs">Buffered from daily unspent limits</CardDescription>
             </div>
             <PiggyBank className="h-5 w-5 text-primary" />
           </CardHeader>
@@ -169,7 +191,7 @@ export default function DashboardPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-lg font-bold">Emergency Fund</CardTitle>
-                <CardDescription className="text-xs">Your financial safety net.</CardDescription>
+                <CardDescription className="text-xs">Your financial safety net</CardDescription>
               </div>
               <ShieldAlert className="h-5 w-5 text-orange-500" />
             </CardHeader>
@@ -196,7 +218,41 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* Active Goals */}
       <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>Active Goals</CardTitle>
+          <CardDescription>Track your savings progress</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {goals.length > 0 ? goals.map(goal => (
+            <div key={goal.id}>
+              <div className="flex justify-between mb-1.5 align-baseline">
+                <span className="text-sm font-semibold">{goal.name}</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  ₹{goal.currentAmount.toLocaleString('en-IN')} / ₹{goal.targetAmount.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <Progress value={(goal.currentAmount / goal.targetAmount) * 100} className="h-2" />
+            </div>
+          )) : (
+            <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+              <p className="text-sm">No active goals yet</p>
+              <Button variant="link" asChild className="mt-1 text-xs">
+                <Link href="/goals">Set one now</Link>
+              </Button>
+            </div>
+          )}
+          {goals.length > 0 && (
+            <Button className="w-full mt-4 text-xs h-9" asChild variant="outline">
+              <Link href="/goals">Manage Goals</Link>
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
         <CardHeader>
           <CardTitle>Financial Breakdown</CardTitle>
           <CardDescription>Monthly budget allocation across Needs, Wants, and Savings.</CardDescription>

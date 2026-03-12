@@ -13,7 +13,7 @@ const nunito = Nunito({
 
 
 export const metadata: Metadata = {
-  title: 'FinMate',
+  title: 'PocketPilot',
   description: 'AI-powered smart budget tracker to master your finances.',
 };
 

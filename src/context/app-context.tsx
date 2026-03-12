@@ -9,7 +9,7 @@ import { FirestoreService } from '@/lib/firestore';
 import { useRouter } from 'next/navigation';
 import { format, formatISO, startOfDay, parseISO, subDays, isAfter, isSameDay, isBefore, addDays, startOfMonth } from 'date-fns';
 import { BADGES, Badge, DEFAULT_GAMIFICATION_STATE, checkBadgeEligibility, BadgeCheckContext } from '@/lib/gamification';
-import { calculateRoleBudget } from '@/lib/utils';
+import { calculateStudentBudget } from '@/lib/utils';
 
 interface AppContextType {
   user: User | null | undefined;
@@ -40,10 +40,6 @@ interface AppContextType {
   getEarnedBadges: () => Badge[];
   awardBadge: (badgeId: string) => void;
   deleteGoal: (goalId: string) => Promise<void>;
-  updateInvestments: (investments: import('@/lib/investment-types').Investment[]) => Promise<void>;
-  deleteInvestment: (investmentId: string) => Promise<void>;
-  updateSIPPlans: (plans: import('@/lib/investment-types').SIPPlan[]) => Promise<void>;
-  deleteSIPPlan: (planId: string) => Promise<void>;
   allocateTds: (allocation: { emergencyFund: number, goals: { goalId: string, amount: number }[] }) => Promise<void>;
 }
 
@@ -78,7 +74,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           const userProfile = await FirestoreService.getProfile(currentUser.uid);
           if (userProfile) {
             const fixedExpensesTotal = userProfile.fixedExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
-            const budget = calculateRoleBudget(userProfile.income, fixedExpensesTotal, userProfile.role);
+            const budget = calculateStudentBudget(userProfile.monthlyIncome || userProfile.income, fixedExpensesTotal);
             const updatedProfile = {
               ...userProfile,
               ...budget,
@@ -86,7 +82,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               gamification: userProfile.gamification || DEFAULT_GAMIFICATION_STATE,
             };
             setProfile(updatedProfile);
-            setOnboardingComplete(!!updatedProfile.role);
+            setOnboardingComplete(!!updatedProfile.userType);
           } else {
             setProfile(null);
           }
@@ -144,8 +140,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       // Prepare base profile data
-      const income = newProfileData.income ?? profile?.income ?? 0;
-      const role = newProfileData.role || profile?.role || '';
+      const income = newProfileData.monthlyIncome ?? profile?.monthlyIncome ?? 0;
       const fixedExpenses = newProfileData.fixedExpenses?.map(exp => ({
         id: exp.id || crypto.randomUUID(),
         name: exp.name || '',
@@ -156,14 +151,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       })) ?? profile?.fixedExpenses ?? [];
 
       const fixedExpensesTotal = fixedExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
-      const budget = calculateRoleBudget(income, fixedExpensesTotal, role);
+      const budget = calculateStudentBudget(income, fixedExpensesTotal);
 
       // Create a complete profile object with all required fields
       const updatedProfile: UserProfile = {
         ...profile,
-        role,
+        userType: 'student',
         name: newProfileData.name || profile?.name || '',
-        income,
+        collegeName: newProfileData.collegeName || profile?.collegeName || '',
+        livingType: newProfileData.livingType || profile?.livingType || 'hostel',
+        monthlyIncome: income,
+        internshipIncome: newProfileData.internshipIncome,
+        recurringExpenses: newProfileData.recurringExpenses || profile?.recurringExpenses || [],
+        semesterFees: newProfileData.semesterFees || profile?.semesterFees,
         fixedExpenses,
         ...budget,
         emergencyFund: {
@@ -172,8 +172,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           history: newProfileData.emergencyFund?.history ?? profile?.emergencyFund?.history ?? []
         },
         gamification: profile?.gamification || DEFAULT_GAMIFICATION_STATE,
-        investments: profile?.investments || [],
-        sipPlans: profile?.sipPlans || [],
       };
 
       // Debug log before saving
@@ -537,35 +535,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateInvestments = async (newInvestments: import('@/lib/investment-types').Investment[]) => {
-    if (!user || !profile) return;
-    const updatedProfile = { ...profile, investments: newInvestments };
-    setProfile(updatedProfile);
-    persistState(PROFILE_KEY, updatedProfile);
-    await FirestoreService.updateProfile(user.uid, updatedProfile);
-  };
 
-  const deleteInvestment = async (investmentId: string) => {
-    if (!user || !profile?.investments) return;
-    const updatedInvestmentsList = profile.investments.filter(i => i.id !== investmentId);
-    await updateInvestments(updatedInvestmentsList);
-    toast({ title: 'Investment removed.' });
-  };
-
-  const updateSIPPlans = async (newPlans: import('@/lib/investment-types').SIPPlan[]) => {
-    if (!user || !profile) return;
-    const updatedProfile = { ...profile, sipPlans: newPlans };
-    setProfile(updatedProfile);
-    persistState(PROFILE_KEY, updatedProfile);
-    await FirestoreService.updateProfile(user.uid, updatedProfile);
-  };
-
-  const deleteSIPPlan = async (planId: string) => {
-    if (!user || !profile?.sipPlans) return;
-    const updatedPlans = profile.sipPlans.filter(p => p.id !== planId);
-    await updateSIPPlans(updatedPlans);
-    toast({ title: 'SIP Plan removed.' });
-  };
 
   const allocateTds = async (allocation: { emergencyFund: number, goals: { goalId: string, amount: number }[] }) => {
     if (!user || !profile) return;
@@ -915,10 +885,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     getEarnedBadges,
     awardBadge,
     deleteGoal,
-    updateInvestments,
-    deleteInvestment,
-    updateSIPPlans,
-    deleteSIPPlan,
     allocateTds,
   };
 

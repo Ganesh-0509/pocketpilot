@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { UserRole } from "./types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -24,47 +23,34 @@ export function getApiUrl(path: string): string {
 }
 
 /**
- * Get role-based budget allocation percentages
- * - Student: 60% Needs, 30% Wants, 10% Savings (low income, unstable)
- * - Professional: 50% Needs, 30% Wants, 20% Savings (standard earning)
- * - Housewife: 55% Needs, 25% Wants, 20% Savings (household-heavy needs)
+ * Student budget allocation: 60% Needs, 30% Wants, 10% Savings
+ * Optimized for pocket money management with recurring expenses
  */
-export function getRoleBudgetSplit(role: UserRole): { needsPercent: number; wantsPercent: number; savingsPercent: number } {
-  switch (role) {
-    case 'Student':
-      return { needsPercent: 0.60, wantsPercent: 0.30, savingsPercent: 0.10 };
-    case 'Professional':
-      return { needsPercent: 0.50, wantsPercent: 0.30, savingsPercent: 0.20 };
-    case 'Housewife':
-      return { needsPercent: 0.55, wantsPercent: 0.25, savingsPercent: 0.20 };
-    default:
-      // Fallback to Professional split
-      return { needsPercent: 0.50, wantsPercent: 0.30, savingsPercent: 0.20 };
-  }
+export function getStudentBudgetSplit(): { needsPercent: number; wantsPercent: number; savingsPercent: number } {
+  return { needsPercent: 0.60, wantsPercent: 0.30, savingsPercent: 0.10 };
 }
 
 /**
- * Calculate role-based budget allocation
- * Takes into account fixed expenses and dynamically adjusts Wants/Savings if Needs exceed threshold
+ * Calculate student budget allocation
+ * Takes into account recurring expenses and dynamically adjusts Wants/Savings if Needs exceed threshold
  */
-export function calculateRoleBudget(
+export function calculateStudentBudget(
   income: number,
-  fixedExpensesTotal: number,
-  role: UserRole
+  recurringExpensesTotal: number
 ): { monthlyNeeds: number; monthlyWants: number; monthlySavings: number; dailySpendingLimit: number } {
   if (income <= 0) {
     return { monthlyNeeds: 0, monthlyWants: 0, monthlySavings: 0, dailySpendingLimit: 0 };
   }
 
-  const { needsPercent, wantsPercent, savingsPercent } = getRoleBudgetSplit(role);
-  const needs = fixedExpensesTotal;
+  const { needsPercent, wantsPercent, savingsPercent } = getStudentBudgetSplit();
+  const needs = recurringExpensesTotal;
   const needsThreshold = income * needsPercent;
 
   let wants = 0;
   let savings = 0;
 
   if (needs <= needsThreshold) {
-    // Fixed expenses are within threshold — use role-based split
+    // Recurring expenses are within threshold — use student split (60/30/10)
     const wantsTarget = income * wantsPercent;
     const savingsTarget = income * savingsPercent;
 
@@ -73,10 +59,10 @@ export function calculateRoleBudget(
     wants = wantsTarget + (remainder > 0 ? remainder : 0);
     savings = savingsTarget;
   } else {
-    // Fixed expenses exceed role threshold — allocate remaining disposable income
+    // Recurring expenses exceed threshold — allocate remaining disposable income
     const disposable = Math.max(income - needs, 0);
     if (disposable > 0) {
-      // Split remaining disposable based on role's wants/savings ratio
+      // Split remaining disposable based on student wants/savings ratio (30/10 = 75/25)
       const totalFlexPercent = wantsPercent + savingsPercent;
       const wantsRatio = wantsPercent / totalFlexPercent;
       const savingsRatio = savingsPercent / totalFlexPercent;
@@ -97,7 +83,7 @@ export function calculateRoleBudget(
 }
 
 /**
- * Role-based success metric calculation
+ * Student success metric calculation
  * Different roles have different success criteria:
  * - Student: Minimize daily overspend (unstable income, focus on discipline)
  * - Professional: Maximize savings rate (stable income, focus on growth)

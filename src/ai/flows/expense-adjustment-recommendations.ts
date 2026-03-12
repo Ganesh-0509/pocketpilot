@@ -59,12 +59,11 @@ const prompt = ai.definePrompt({
   input: { schema: ExpenseAdjustmentRecommendationsInputSchema },
   output: { schema: ExpenseAdjustmentRecommendationsOutputSchema },
   model: 'googleai/gemini-2.0-flash',
-  prompt: `You are a personal finance advisor. Your task is to provide a list of specific and actionable tips to help a user adjust their spending to meet their financial goals.
+  prompt: `You are a personal finance advisor for college students in India. Your task is to provide specific and actionable tips to help a student adjust their spending to meet their financial goals.
 
-## User's Financial Profile:
-- **Role:** {{role}}
-- **Monthly Income:** ₹{{income}}
-- **Fixed Expenses:**
+## Student's Financial Profile:
+- **Monthly Income (Pocket Money/Stipend):** ₹{{income}}
+- **Recurring Expenses:**
 {{#each fixedExpenses}}
   - {{name}}: ₹{{amount}}
 {{/each}}
@@ -79,14 +78,17 @@ const prompt = ai.definePrompt({
 - **Daily Spending Limit (for 'Wants'):** ₹{{discretionarySpendingLimit}}
 
 ## Your Instructions:
-1.  **Analyze the User's Data:** Review their income, fixed costs, goals, and especially their recent spending habits.
+1.  **Analyze the Student's Data:** Review their pocket money, recurring costs, goals, and especially their recent spending habits.
 2.  **Focus on Low-Hanging Fruit:** Identify 2-3 categories from their 'Recent Discretionary Spending' where they can make small, impactful changes.
-3.  **Generate Role-Specific Actionable Tips:**
-    - For **Students**: Suggest student discounts, free resources, budget-friendly alternatives, or sharing economy options.
-    - For **Professionals**: Suggest optimization strategies, automation, premium-to-standard downgrades, or reallocation (not restriction).
-    - For **Housewives**: Suggest bulk buying, seasonal planning, local market shopping, or community resource sharing.
+3.  **Generate Student-Specific Actionable Tips:**
+    - Suggest student discounts, free resources, budget-friendly alternatives, or sharing economy options
+    - Recommend canteen vs. outside food comparisons
+    - Suggest library resources instead of buying books
+    - Recommend shared transport or college bus options
+    - Suggest free student events for entertainment
+    - Recommend meal planning for hostel students
 4.  **Be Specific and Concise:** Do not give generic advice. Your tips must be direct and in bullet-point format.
-5.  **Contextualize for India:** Where possible, make sure the tips are relevant to an Indian context (local markets, UPI cashback, etc.).
+5.  **Contextualize for India:** Make sure the tips are relevant to Indian college students (local canteens, UPI cashback, student discounts, etc.).
 6.  **Focus on Expense Reduction Only:** Do not suggest increasing income. All tips must be about reducing spending.
 
 Based on these instructions, generate a list of tips for the 'recommendations' field.`,

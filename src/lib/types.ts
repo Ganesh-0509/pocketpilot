@@ -1,10 +1,28 @@
-export type UserRole = 'Student' | 'Professional' | 'Housewife' | '';
+export type UserType = 'student';
+
+export type LivingType = 'hostel' | 'day_scholar';
+
+export interface RecurringExpense {
+  name: string;
+  amount: number;
+  category: string;
+}
+
+export interface SemesterFee {
+  amount: number;
+  dueDate: string; // ISO string
+}
 
 export interface UserProfile {
   name?: string;
-  role: UserRole;
-  income: number;
-  fixedExpenses: FixedExpense[];
+  userType: UserType;
+  collegeName: string;
+  livingType: LivingType;
+  monthlyIncome: number; // Pocket money/stipend
+  internshipIncome?: number;
+  recurringExpenses: RecurringExpense[];
+  semesterFees?: SemesterFee[];
+  fixedExpenses: FixedExpense[]; // Keep for backward compatibility during migration
   dailySpendingLimit: number;
   monthlyNeeds: number;
   monthlyWants: number;
@@ -21,11 +39,11 @@ export interface UserProfile {
     lastStreakDate: string | null;
     lastBadgeCheckDate?: string | null;
   };
-  investments?: import('./investment-types').Investment[];
-  sipPlans?: import('./investment-types').SIPPlan[];
   totalDailySavings?: number; // Current balance (optional if we use derived)
   lastTdsResetDate?: string; // ISO string
   reminderTime?: string; // HH:mm format
+  createdAt?: string; // ISO string
+  updatedAt?: string; // ISO string
 }
 
 export interface FixedExpense {

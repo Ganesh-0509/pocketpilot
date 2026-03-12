@@ -22,19 +22,17 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-const fixedExpenseSchema = z.object({
+const recurringExpenseSchema = z.object({
     id: z.string().optional(),
     name: z.string().min(1, 'Expense name is required'),
     amount: z.coerce.number().min(0, 'Amount must be positive'),
     category: z.string().min(1, 'Category is required'),
-    timelineMonths: z.coerce.number().optional().nullable(),
-    startDate: z.string().optional(),
 });
 
 const profileSchema = z.object({
-    role: z.enum(['Student', 'Professional', 'Housewife']),
-    income: z.coerce.number().min(0, 'Income cannot be negative'),
-    fixedExpenses: z.array(fixedExpenseSchema).optional(),
+    collegeName: z.string().min(1, 'College name is required'),
+    monthlyIncome: z.coerce.number().min(0, 'Income cannot be negative'),
+    recurringExpenses: z.array(recurringExpenseSchema).optional(),
     reminderTime: z.string().optional(),
 });
 
@@ -49,36 +47,42 @@ export default function SettingsPage() {
     const form = useForm<ProfileValues>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            role: profile?.role || 'Professional',
-            income: profile?.income || 0,
-            fixedExpenses: profile?.fixedExpenses || [],
+            collegeName: profile?.collegeName || '',
+            monthlyIncome: profile?.monthlyIncome || 0,
+            recurringExpenses: profile?.recurringExpenses || [],
             reminderTime: profile?.reminderTime || '20:00',
         },
     });
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
-        name: "fixedExpenses",
+        name: "recurringExpenses",
     });
 
     React.useEffect(() => {
         if (profile) {
-            // Map role to allowed enum values; if it's empty/unknown, default to undefined
-            const mappedRole = ['Student', 'Professional', 'Housewife'].includes(profile.role as string)
-                ? (profile.role as 'Student' | 'Professional' | 'Housewife')
-                : undefined;
-
             form.reset({
-                role: mappedRole,
-                income: profile.income,
-                fixedExpenses: profile.fixedExpenses.map(exp => ({ ...exp, timelineMonths: exp.timelineMonths || null })),
+                collegeName: profile.collegeName || '',
+                monthlyIncome: profile.monthlyIncome || 0,
+                recurringExpenses: profile.recurringExpenses || [],
                 reminderTime: profile.reminderTime || '20:00',
             });
         }
     }, [profile, form]);
 
     function onSubmit(data: ProfileValues) {
-        updateProfile(data as any);
+        // Convert recurringExpenses to fixedExpenses for backward compatibility
+        const fixedExpenses = (data.recurringExpenses || []).map(exp => ({
+            id: exp.id || `fe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            name: exp.name,
+            amount: exp.amount,
+            category: exp.category,
+        }));
+
+        updateProfile({ 
+            ...data, 
+            fixedExpenses,
+        } as any);
         toast({
             title: "Profile Updated",
             description: "Your settings have been successfully updated.",
@@ -90,43 +94,34 @@ export default function SettingsPage() {
         <div className="space-y-6">
             <Card className="w-full max-w-4xl mx-auto">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-headline">Profile Settings</CardTitle>
-                    <CardDescription>Update your personal and financial information here. Your budget is calculated based on your disposable income.</CardDescription>
+                    <CardTitle className="text-2xl font-headline">Student Profile Settings</CardTitle>
+                    <CardDescription>Update your student profile and recurring expenses.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FormField
                                     control={form.control}
-                                    name="role"
+                                    name="collegeName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>What's your current role?</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select your role" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="Student">Student</SelectItem>
-                                                    <SelectItem value="Professional">Professional</SelectItem>
-                                                    <SelectItem value="Housewife">Housewife</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <FormLabel>College/University Name</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="e.g., IIT Delhi" {...field} />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="income"
+                                    name="monthlyIncome"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Monthly Income (₹)</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="e.g., 50000" {...field} />
+                                                <Input type="number" placeholder="e.g., 5000" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -137,7 +132,7 @@ export default function SettingsPage() {
                                     name="reminderTime"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Reminder Alarm (Daily)</FormLabel>
+                                            <FormLabel>Daily Reminder Time</FormLabel>
                                             <FormControl>
                                                 <Input type="time" {...field} />
                                             </FormControl>
@@ -149,131 +144,73 @@ export default function SettingsPage() {
                             </div>
 
                             <div>
-                                <Label className="text-lg font-medium">Fixed Monthly Expenses</Label>
-                                <p className="text-sm text-muted-foreground mb-4">Update your recurring expenses like rent, EMIs, or subscriptions.</p>
+                                <Label className="text-lg font-medium">Recurring Monthly Expenses</Label>
+                                <p className="text-sm text-muted-foreground mb-4">Update your recurring expenses like mess fees, rent, or subscriptions.</p>
                                 <div className="space-y-4">
-                                    {fields.map((field, index) => {
-                                        const timelineMonths = form.watch(`fixedExpenses.${index}.timelineMonths`);
-                                        return (
-                                            <div key={field.id} className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,1fr,auto] items-end gap-4 p-4 border rounded-lg">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fixedExpenses.${index}.name`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Expense Name</FormLabel>
-                                                            <FormControl>
-                                                                <Input placeholder="Expense Name" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fixedExpenses.${index}.category`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Category</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                                <FormControl>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder="Category" />
-                                                                    </SelectTrigger>
-                                                                </FormControl>
-                                                                <SelectContent>
-                                                                    {expenseCategories.map(cat => (
-                                                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fixedExpenses.${index}.amount`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Amount</FormLabel>
-                                                            <FormControl>
-                                                                <Input type="number" placeholder="Amount (₹)" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fixedExpenses.${index}.timelineMonths`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Timeline</FormLabel>
-                                                            <FormControl>
-                                                                <Input type="number" placeholder="Months (Opt)" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                                                    <Trash className="h-4 w-4" />
-                                                </Button>
-
-                                                {!!timelineMonths && (
-                                                    <FormField
-                                                        control={form.control}
-                                                        name={`fixedExpenses.${index}.startDate`}
-                                                        render={({ field }) => (
-                                                            <FormItem className="flex flex-col mt-2 md:col-span-2">
-                                                                <FormLabel>Start Date</FormLabel>
-                                                                <Popover>
-                                                                    <PopoverTrigger asChild>
-                                                                        <FormControl>
-                                                                            <Button
-                                                                                variant={"outline"}
-                                                                                className={cn(
-                                                                                    "pl-3 text-left font-normal",
-                                                                                    !field.value && "text-muted-foreground"
-                                                                                )}
-                                                                            >
-                                                                                {field.value ? (
-                                                                                    format(new Date(field.value), "PPP")
-                                                                                ) : (
-                                                                                    <span>Pick a date</span>
-                                                                                )}
-                                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                                            </Button>
-                                                                        </FormControl>
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                                        <Calendar
-                                                                            mode="single"
-                                                                            selected={field.value ? new Date(field.value) : undefined}
-                                                                            onSelect={(date) => field.onChange(date?.toISOString())}
-                                                                            initialFocus
-                                                                        />
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
+                                    {fields.map((field, index) => (
+                                        <div key={field.id} className="grid grid-cols-1 md:grid-cols-[2fr,1.5fr,1.5fr,auto] items-end gap-4 p-4 border rounded-lg">
+                                            <FormField
+                                                control={form.control}
+                                                name={`recurringExpenses.${index}.name`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Expense Name</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="e.g., Mess Fees" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
                                                 )}
-
-                                            </div>
-                                        )
-                                    })}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name={`recurringExpenses.${index}.amount`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Amount (₹)</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="number" placeholder="Amount" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name={`recurringExpenses.${index}.category`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Category</FormLabel>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Category" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {expenseCategories.map(cat => (
+                                                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                                                <Trash className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
                                 </div>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
                                     className="mt-4"
-                                    onClick={() => append({ id: `new-${Date.now()}`, name: '', amount: 0, category: 'Other', timelineMonths: null, startDate: undefined })}
+                                    onClick={() => append({ id: `new-${Date.now()}`, name: '', amount: 0, category: 'Other' })}
                                 >
-                                    Add Expense
+                                    Add Recurring Expense
                                 </Button>
                             </div>
 

@@ -15,7 +15,7 @@ const pageTitles: { [key: string]: string } = {
   '/expenses': 'Expense Analysis',
   '/fixed-expenses': 'Fixed Expenses Analysis',
   '/emergency-fund': 'Emergency Fund',
-  '/onboarding': 'Welcome to FinMate',
+  '/onboarding': 'Welcome to PocketPilot',
   '/settings': 'Profile Settings',
   '/help': 'Help & User Guide',
 };
@@ -27,7 +27,7 @@ export function DashboardHeader() {
   // Always show the page title (e.g., "Dashboard Overview") in the header.
   // This prevents showing a duplicate greeting in the header when the page
   // content already displays a personalized greeting.
-  const title = pageTitles[pathname] || 'FinMate';
+  const title = pageTitles[pathname] || 'PocketPilot';
 
   const getInitials = (emailOrName: string | undefined) => {
     if (!emailOrName) return 'U';

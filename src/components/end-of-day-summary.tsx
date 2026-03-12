@@ -10,7 +10,7 @@ import { Progress } from './ui/progress';
 import { format } from 'date-fns';
 
 const SUMMARY_HOUR_THRESHOLD = 20; // 8 PM
-const LAST_SUMMARY_KEY = 'FinMate-last-summary-date';
+const LAST_SUMMARY_KEY = 'PocketPilot-last-summary-date';
 
 export function EndOfDaySummary() {
   const { profile, getTodaysSpending } = useApp();

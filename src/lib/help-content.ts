@@ -24,32 +24,32 @@ export const helpSections: HelpSection[] = [
     icon: "🚀",
     content: [
       {
-        heading: "Welcome to FinMate",
-        description: "FinMate is your AI-powered personal finance management companion. We help you track expenses, manage budgets, achieve financial goals, and make smarter money decisions.",
+        heading: "Welcome to PocketPilot",
+        description: "PocketPilot is your student finance companion. We help you track expenses, manage pocket money, achieve financial goals, and make smarter money decisions during your college years.",
         tips: [
           "Complete your profile in Settings to get personalized budget recommendations",
-          "Your role (Student/Professional/Housewife) determines your budget split ratios",
+          "PocketPilot uses a 60/30/10 budget split optimized for student life",
           "All your data is securely stored and synced across devices",
         ],
       },
       {
         heading: "Initial Setup",
-        description: "To get the most out of FinMate, follow these steps:",
+        description: "To get the most out of PocketPilot, follow these steps:",
         steps: [
-          "Complete onboarding by selecting your role and entering monthly income",
-          "Add your fixed expenses (rent, subscriptions, etc.) for accurate budget calculation",
-          "Review your daily spending limit calculated based on your role and income",
+          "Complete onboarding by entering your college name and monthly income",
+          "Add your recurring expenses (mess fees, subscriptions, etc.) for accurate budget calculation",
+          "Review your daily spending limit calculated using the student budget formula (60/30/10)",
           "Set up your first financial goal to start saving with purpose",
           "Enable the AI Assistant to get personalized financial advice",
         ],
       },
       {
         heading: "Understanding Your Budget",
-        description: "FinMate uses role-based budget allocation to match your lifestyle:",
+        description: "PocketPilot uses a student-optimized budget allocation:",
         tips: [
-          "Students: 60% Needs, 30% Wants, 10% Savings - optimized for education expenses",
-          "Professionals: 50% Needs, 30% Wants, 20% Savings - balanced for career growth",
-          "Housewives: 55% Needs, 25% Wants, 20% Savings - household-focused planning",
+          "Students: 60% Needs, 30% Wants, 10% Savings - optimized for pocket money management",
+          "Needs include mess fees, rent, transport, and other recurring expenses",
+          "Wants are calculated as daily safe-to-spend amount for discretionary purchases",
         ],
       },
     ],
@@ -343,89 +343,6 @@ export const helpSections: HelpSection[] = [
     ],
   },
   {
-    id: "investments",
-    title: "Investments",
-    icon: "📊",
-    content: [
-      {
-        heading: "Investment Portfolio Tracking",
-        description: "Monitor your investments and grow your wealth. FinMate helps you track stocks, mutual funds, FDs, and more.",
-      },
-      {
-        heading: "Adding Investments",
-        description: "Record your investment holdings:",
-        steps: [
-          "Go to 'Investments' page",
-          "Click 'Add Investment'",
-          "Select investment type (Stocks, Mutual Funds, FD, Gold, etc.)",
-          "Enter investment name",
-          "Input purchase amount and current value",
-          "Add purchase date",
-          "Save to portfolio",
-        ],
-      },
-      {
-        heading: "Investment Types Supported",
-        description: "Track various asset classes:",
-        tips: [
-          "Stocks: Individual company shares",
-          "Mutual Funds: Diversified investment funds",
-          "Fixed Deposits: Guaranteed return bank deposits",
-          "Gold: Physical or digital gold holdings",
-          "Real Estate: Property investments",
-          "Crypto: Cryptocurrency holdings (track only)",
-          "PPF/EPF: Retirement savings accounts",
-        ],
-      },
-      {
-        heading: "Portfolio Overview",
-        description: "Key metrics at a glance:",
-        tips: [
-          "Total Portfolio Value: Current worth of all investments",
-          "Total Gain/Loss: Overall profit or loss amount",
-          "Gain/Loss Percentage: ROI across portfolio",
-          "Active Investments: Number of holdings",
-        ],
-      },
-      {
-        heading: "SIP Calculator",
-        description: "Plan systematic investments:",
-        steps: [
-          "Access the SIP Calculator tool",
-          "Enter monthly investment amount",
-          "Set expected annual return rate",
-          "Choose investment duration",
-          "See projected maturity value",
-        ],
-        tips: [
-          "SIPs average out market volatility",
-          "Longer durations benefit from compounding",
-          "Use calculator to plan goal-based investments",
-        ],
-      },
-      {
-        heading: "Tax Optimization",
-        description: "Maximize tax benefits:",
-        tips: [
-          "Track 80C investments (up to ₹1.5 lakh deduction)",
-          "Monitor ELSS funds for tax-saving + growth",
-          "Plan investments around financial year deadlines",
-          "Consult a tax professional for personalized advice",
-        ],
-      },
-      {
-        heading: "AI Investment Recommendations",
-        description: "Get personalized investment suggestions:",
-        tips: [
-          "AI analyzes your risk profile and goals",
-          "Recommendations based on your age and role",
-          "Diversification suggestions to balance risk",
-          "Review recommendations regularly but do your research",
-        ],
-      },
-    ],
-  },
-  {
     id: "ai-assistant",
     title: "AI Assistant",
     icon: "🤖",
@@ -452,7 +369,6 @@ export const helpSections: HelpSection[] = [
           "\"How am I doing this month?\" - Get spending summary",
           "\"Where should I cut costs?\" - Expense optimization tips",
           "\"Am I on track for my goals?\" - Goal progress analysis",
-          "\"Should I invest in X?\" - Investment guidance",
           "\"Explain my budget breakdown\" - Budget clarification",
           "\"How can I save more?\" - Savings strategies",
         ],
@@ -462,7 +378,7 @@ export const helpSections: HelpSection[] = [
         description: "AI capabilities:",
         tips: [
           "Role-aware advice tailored to Student/Professional/Housewife",
-          "Context-aware responses based on your spending patterns",
+          "Student-focused advice tailored for college l
           "Spending alerts when you exceed category budgets",
           "Proactive suggestions for financial improvement",
           "Daily briefings with actionable insights",
@@ -473,8 +389,8 @@ export const helpSections: HelpSection[] = [
         description: "Your data security matters:",
         tips: [
           "Conversations are not stored long-term",
-          "AI accesses only your FinMate data (not external accounts)",
-          "Recommendations are suggestions, not financial advice",
+          "AI accesses only your PocketPilot data (not external accounts)",
+          "Recommendations are suggestions, not professional financial advice",
           "Always verify important financial decisions independently",
         ],
       },
@@ -485,7 +401,6 @@ export const helpSections: HelpSection[] = [
           "Be specific in your questions for better answers",
           "Provide context (timeframe, amounts) when relevant",
           "Use AI for insights, not as replacement for financial planning",
-          "Cross-check investment advice with professional advisors",
         ],
       },
     ],
@@ -637,19 +552,9 @@ export const helpSections: HelpSection[] = [
           "Click 'Save Changes' to apply updates",
         ],
         tips: [
-          "Role changes recalculate budget splits immediately",
+          "Budget changes apply immediately when you update income or expenses",
           "Income updates affect daily spending limits",
-          "Keep fixed expenses accurate for correct calculations",
-        ],
-      },
-      {
-        heading: "Role Selection",
-        description: "Choose the role that fits your lifestyle:",
-        tips: [
-          "Student: Optimized for education and learning expenses",
-          "Professional: Balanced for working individuals",
-          "Housewife: Focused on household management",
-          "Change roles as your life stage evolves",
+          "Keep recurring expenses accurate for correct calculations",
         ],
       },
       {

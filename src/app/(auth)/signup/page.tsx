@@ -85,7 +85,7 @@ export default function SignupPage() {
         <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center mx-auto">
           <Image
             src="/FINMATE.png"
-            alt="FinMate"
+            alt="PocketPilot"
             width={36}
             height={36}
             style={{ width: 'auto', height: 'auto' }}

@@ -73,7 +73,7 @@ export default function LandingPage() {
                 priority
               />
             </div>
-            <span className="font-bold text-white text-lg">FinMate</span>
+            <span className="font-bold text-white text-lg">PocketPilot</span>
           </Link>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-3">
@@ -126,7 +126,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mt-4 max-w-[680px] text-lg text-cyan-100/80">
-                FinMate is your AI financial co-pilot — goal-first budgeting, contextual
+                PocketPilot is your student finance co-pilot — goal-first budgeting, contextual
                 coaching, and real-time insights built for India. Save smarter with powerful,
                 personalized recommendations.
               </p>
@@ -180,7 +180,7 @@ export default function LandingPage() {
                     <div className="h-[260px] w-full rounded-3xl bg-black/40 backdrop-blur-md p-6 text-white">
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="text-sm text-[#4ADE80]">FinMate • Smart Wallet</div>
+                          <div className="text-sm text-[#4ADE80]">PocketPilot • Smart Wallet</div>
                           <div className="mt-3 text-xl font-semibold">₹ 12,483.75</div>
                           <div className="mt-1 text-xs text-cyan-100/60">Projected monthly savings</div>
                         </div>
@@ -235,7 +235,7 @@ export default function LandingPage() {
             <div className="mx-auto mb-12 max-w-2xl text-center text-white">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Your Personal Financial Coach</h2>
               <p className="mt-4 text-lg text-cyan-100/70">
-                FinMate provides the tools you need to take control of your finances — with gentle nudges
+                PocketPilot provides the tools you need to take control of your finances — with gentle nudges
                 and actionable plans.
               </p>
             </div>
@@ -271,7 +271,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-4xl rounded-2xl bg-gradient-to-r from-[#042033]/60 to-[#052b3c]/50 p-8 text-center backdrop-blur-md border border-white/6">
             <h2 className="text-3xl font-bold text-white">Ready to transform your financial future?</h2>
             <p className="mt-4 text-lg text-cyan-100/70">
-              Join FinMate today and start your journey towards financial freedom.
+              Join PocketPilot today and start your journey towards financial freedom.
             </p>
             <div className="mt-8">
               <Button size="lg" className="bg-[#4ADE80] hover:bg-[#4ADE80]/90 text-black font-medium shadow-lg shadow-[#4ADE80]/30">
@@ -347,7 +347,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center gap-4 md:flex-row md:gap-2">
             <Logo className="text-[#4ADE80]" />
             <p className="text-center text-sm leading-loose text-cyan-100 md:text-left">
-              © {new Date().getFullYear()} FinMate. All rights reserved.
+              © {new Date().getFullYear()} PocketPilot. All rights reserved.
             </p>
           </div>
           <p className="text-center text-sm text-cyan-100/70">Built for a better financial you.</p>
