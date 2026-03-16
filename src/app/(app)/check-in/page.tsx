@@ -45,7 +45,7 @@ const COLORS = [
 ];
 
 export default function CheckInPage() {
-  const { profile, addTransaction, transactions, updateTransaction, deleteTransaction } = useApp();
+  const { profile, addTransaction, transactions, updateTransaction, deleteTransaction, studentAnalytics } = useApp();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { toast } = useToast();
@@ -74,7 +74,7 @@ export default function CheckInPage() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const todaysSpending = todaysTransactions.reduce((sum, t) => sum + t.amount, 0);
-  const dailyLimit = profile?.dailySpendingLimit || 0;
+  const dailyLimit = studentAnalytics?.currentDailyLimit || profile?.dailySpendingLimit || 0;
   const progress = dailyLimit > 0 ? (todaysSpending / dailyLimit) * 100 : 0;
   const remaining = dailyLimit - todaysSpending;
 
@@ -93,11 +93,11 @@ export default function CheckInPage() {
     addTransaction(data);
     form.reset({ amount: 0, category: '', description: '', date: data.date });
 
-    if (profile && (todaysSpending + data.amount) > profile.dailySpendingLimit && isSameDay(parseISO(data.date || ''), new Date())) {
+    if (profile && (todaysSpending + data.amount) > dailyLimit && isSameDay(parseISO(data.date || ''), new Date())) {
       toast({
         variant: "destructive",
         title: 'Daily Limit Exceeded!',
-        description: `You've spent ₹${(todaysSpending + data.amount).toFixed(2)} today, which is over your ₹${profile.dailySpendingLimit.toFixed(2)} limit.`,
+        description: `You've spent ₹${(todaysSpending + data.amount).toFixed(2)} today, which is over your ₹${dailyLimit.toFixed(2)} limit.`,
       });
     }
   }

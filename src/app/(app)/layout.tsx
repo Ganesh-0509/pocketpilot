@@ -8,6 +8,7 @@ import {
   CheckCircle,
   Target,
   PieChart,
+  CalendarClock,
   LogOut,
   Settings,
   CreditCard,
@@ -24,6 +25,7 @@ import { Logo } from '@/components/logo';
 const navItems = [
   { href: '/dashboard', icon: <LayoutGrid />, label: 'Dashboard' },
   { href: '/check-in', icon: <CheckCircle />, label: 'Daily Check-in' },
+  { href: '/semester-planner', icon: <CalendarClock />, label: 'Semester Planner' },
   { href: '/goals', icon: <Target />, label: 'Goals' },
   { href: '/expenses', icon: <PieChart />, label: 'Expenses' },
   { href: '/fixed-expenses', icon: <CreditCard />, label: 'Fixed Expenses' },

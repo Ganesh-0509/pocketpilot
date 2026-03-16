@@ -12,7 +12,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const ExpenseAdjustmentRecommendationsInputSchema = z.object({
-  income: z.number().describe('The user’s total monthly income in Indian Rupees.'), role: z.enum(['Student', 'Professional', 'Housewife']).describe("The user's role for tailored advice."), fixedExpenses: z.array(
+  income: z.number().describe('The user’s total monthly income in Indian Rupees.'), 
+  fixedExpenses: z.array(
     z.object({
       name: z.string().describe('The name of the fixed expense.'),
       amount: z.number().describe('The amount of the fixed expense in Indian Rupees.'),

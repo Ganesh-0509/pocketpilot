@@ -32,6 +32,7 @@ const recurringExpenseSchema = z.object({
 const profileSchema = z.object({
     collegeName: z.string().min(1, 'College name is required'),
     monthlyIncome: z.coerce.number().min(0, 'Income cannot be negative'),
+    internshipIncome: z.coerce.number().min(0, 'Internship income cannot be negative').optional(),
     recurringExpenses: z.array(recurringExpenseSchema).optional(),
     reminderTime: z.string().optional(),
 });
@@ -49,6 +50,7 @@ export default function SettingsPage() {
         defaultValues: {
             collegeName: profile?.collegeName || '',
             monthlyIncome: profile?.monthlyIncome || 0,
+            internshipIncome: profile?.internshipIncome || 0,
             recurringExpenses: profile?.recurringExpenses || [],
             reminderTime: profile?.reminderTime || '20:00',
         },
@@ -64,6 +66,7 @@ export default function SettingsPage() {
             form.reset({
                 collegeName: profile.collegeName || '',
                 monthlyIncome: profile.monthlyIncome || 0,
+                internshipIncome: profile.internshipIncome || 0,
                 recurringExpenses: profile.recurringExpenses || [],
                 reminderTime: profile.reminderTime || '20:00',
             });
@@ -122,6 +125,19 @@ export default function SettingsPage() {
                                             <FormLabel>Monthly Income (₹)</FormLabel>
                                             <FormControl>
                                                 <Input type="number" placeholder="e.g., 5000" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="internshipIncome"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Monthly Internship Income (₹)</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="e.g., 3000" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

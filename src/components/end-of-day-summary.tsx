@@ -13,7 +13,7 @@ const SUMMARY_HOUR_THRESHOLD = 20; // 8 PM
 const LAST_SUMMARY_KEY = 'PocketPilot-last-summary-date';
 
 export function EndOfDaySummary() {
-  const { profile, getTodaysSpending } = useApp();
+  const { profile, getTodaysSpending, studentAnalytics } = useApp();
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function EndOfDaySummary() {
   }, []);
 
   const todaysSpending = getTodaysSpending();
-  const dailyLimit = profile?.dailySpendingLimit || 0;
+  const dailyLimit = studentAnalytics?.currentDailyLimit || profile?.dailySpendingLimit || 0;
   const remaining = dailyLimit - todaysSpending;
   const isOverBudget = remaining < 0;
   const progress = dailyLimit > 0 ? (todaysSpending / dailyLimit) * 100 : 0;

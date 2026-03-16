@@ -42,13 +42,13 @@ export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user && profile?.role) {
+    if (user && profile?.userType) {
       router.replace("/dashboard");
     }
   }, [user, profile, router]);
 
   if (user !== null && user !== undefined) {
-    if (profile?.role) {
+    if (profile?.userType) {
       return (
         <div className="flex h-screen items-center justify-center">
           <p>Loading...</p>

@@ -30,6 +30,9 @@ const DailyBriefingInputSchema = z.object({
     essentialExpensesLogged: z.number().describe("Total essential expenses logged this month"),
     discretionaryExpensesLogged: z.number().describe("Total discretionary expenses logged this month"),
     savingsGoal: z.number().describe("Monthly savings goal"),
+    reservedForUpcomingSemesterCosts: z.number().default(0).describe('Money reserved for semester liabilities due in the next 30 days'),
+    survivalMode: z.boolean().default(false).describe('Whether survival mode is active because the daily limit is critically low'),
+    weekendSpendingSpike: z.boolean().default(false).describe('Whether weekend spending is significantly higher than weekday spending'),
 });
 export type DailyBriefingInput = z.infer<typeof DailyBriefingInputSchema>;
 
@@ -59,27 +62,34 @@ const prompt = ai.definePrompt({
             User Context:
             - Monthly Income: ₹{{income}}
             - Monthly Savings Goal: ₹{{savingsGoal}}
+            - Reserved for Upcoming Semester Costs: ₹{{reservedForUpcomingSemesterCosts}}
             - Essential Expenses Logged (this month): ₹{{essentialExpensesLogged}}
             - Discretionary Expenses Logged (this month): ₹{{discretionaryExpensesLogged}}
             - Today's Transactions: {{json todaysTransactions}}
             - Days Remaining (current month): {{daysLeftInMonth}}
             - History: {{json recentTransactions}}
+            - Survival Mode: {{survivalMode}}
+            - Weekend Spending Spike: {{weekendSpendingSpike}}
 
             ## Strict Rules:
             1. Use ONLY real data. No assumptions.
-            2. Daily Limit = ₹{{dailySpendingLimit}} (This is the fixed limit set by the user).
+            2. Daily Limit = ₹{{dailySpendingLimit}} after accounting for reserved semester costs.
             3. Remaining for Today = Daily Limit - Today's Spending.
+            4. If Survival Mode is true, the tone must be strict and defensive.
+            5. If Weekend Spending Spike is true, explicitly mention that risk.
 
             ## Task:
             1. **Summarize Today**: State specifically what was spent today and in which categories.
-            2. **Compare with Limit**: Inform the user how today's spending (₹{{todaysSpending}}) compares to their fixed Daily Limit (₹{{dailySpendingLimit}}).
+            2. **Compare with Limit**: Inform the user how today's spending (₹{{todaysSpending}}) compares to their current Daily Limit (₹{{dailySpendingLimit}}).
             3. **Behavioral Insight**: Briefly mention if today's {{dayOfWeek}} spending is higher or lower than their typical {{dayOfWeek}} history.
-            4. **Explain Status**: In the reasoning, focus on why they are under or over their fixed daily limit today.
+            4. **Explain Status**: In the reasoning, focus on why they are under or over their current daily limit today.
+            5. **Semester Reserve**: When reservedForUpcomingSemesterCosts > 0, acknowledge that some budget is held back for academic costs.
 
             ## Output Format:
-            - mainMessage: Concise status of today vs the fixed Daily Limit.
-            - reasoning: 2-3 sentences explaining today's impact relative to the fixed daily limit. Use numbers clearly.
+            - mainMessage: Concise status of today vs the current Daily Limit.
+            - reasoning: 2-3 sentences explaining today's impact relative to the current daily limit. Use numbers clearly.
             - behaviorNudge: Pattern-based insight for {{dayOfWeek}}.
+            - warningMessage: Use this when Survival Mode is true or when today's spending already exceeds the limit.
 
             All amounts in Indian Rupees (₹). Round ALL currency values to 2 decimal places. No motivational talk.`,
 });
@@ -106,7 +116,10 @@ const dailyBriefingFlow = ai.defineFlow(
                     mainMessage: spendableToday > 0
                         ? `You have ₹${spendableToday.toFixed(0)} left for today.`
                         : `You've reached your limit for today.`,
-                    reasoning: `Based on your daily limit of ₹${input.dailySpendingLimit}.`,
+                    reasoning: `Based on your current daily limit of ₹${input.dailySpendingLimit} after semester reserves.`,
+                    warningMessage: input.survivalMode
+                        ? 'Survival Mode activated. Reduce non-essential spending to finish the month.'
+                        : undefined,
                 };
             }
 
@@ -122,7 +135,10 @@ const dailyBriefingFlow = ai.defineFlow(
                 mainMessage: spendableToday > 0
                     ? `You have ₹${spendableToday.toFixed(0)} left for today.`
                     : `You've reached your limit for today.`,
-                reasoning: `Based on your daily limit of ₹${input.dailySpendingLimit}.`,
+                reasoning: `Based on your current daily limit of ₹${input.dailySpendingLimit} after semester reserves.`,
+                warningMessage: input.survivalMode
+                    ? 'Survival Mode activated. Reduce non-essential spending to finish the month.'
+                    : undefined,
             };
         }
     }

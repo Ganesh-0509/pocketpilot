@@ -69,7 +69,7 @@ export default function BadgesPage() {
             currentStreak,
             longestStreak,
             totalSaved,
-            monthlyIncome: profile.income,
+            monthlyIncome: profile.monthlyIncome,
             monthlySavings: profile.monthlySavings,
             emergencyFund: profile.emergencyFund?.current || 0,
             monthlyExpenses: profile.monthlyNeeds + profile.monthlyWants,

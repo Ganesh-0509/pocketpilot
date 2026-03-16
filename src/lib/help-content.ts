@@ -377,8 +377,7 @@ export const helpSections: HelpSection[] = [
         heading: "Smart Features",
         description: "AI capabilities:",
         tips: [
-          "Role-aware advice tailored to Student/Professional/Housewife",
-          "Student-focused advice tailored for college l
+          "Student-focused advice tailored for college life",
           "Spending alerts when you exceed category budgets",
           "Proactive suggestions for financial improvement",
           "Daily briefings with actionable insights",
@@ -562,7 +561,7 @@ export const helpSections: HelpSection[] = [
         description: "Your financial data is secure:",
         tips: [
           "All data encrypted in transit and at rest",
-          "Stored securely in Google Firebase",
+          "Stored securely in Supabase",
           "Only you can access your financial information",
           "We never sell or share your data with third parties",
         ],
@@ -619,7 +618,7 @@ export const helpSections: HelpSection[] = [
           "Q: Is FinMate free? A: Yes, FinMate is completely free to use.",
           "Q: Do I need to connect my bank? A: No, FinMate is manual entry only for privacy.",
           "Q: Can I use FinMate offline? A: No, internet required for AI and sync features.",
-          "Q: Is my data safe? A: Yes, encrypted and stored securely in Firebase.",
+          "Q: Is my data safe? A: Yes, encrypted and stored securely in Supabase.",
           "Q: Can multiple people use one account? A: No, create separate accounts for privacy.",
         ],
       },
@@ -651,7 +650,7 @@ export const helpSections: HelpSection[] = [
           "Q: Data not syncing? A: Check internet connection and refresh page.",
           "Q: AI not responding? A: Ensure you're logged in and have internet access.",
           "Q: Export not working? A: Try a different browser or clear cache.",
-          "Q: Forgot password? A: Use Firebase password reset on login page.",
+          "Q: Forgot password? A: Use the reset password option on the login page.",
         ],
       },
       {

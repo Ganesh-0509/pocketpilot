@@ -1,192 +1,207 @@
 "use client";
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { IndianRupee, Target, TrendingUp, TrendingDown, PiggyBank, Wallet, ShoppingCart, ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import { useApp } from '@/hooks/use-app';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { format, isLastDayOfMonth } from 'date-fns';
+import { AlertTriangle, CalendarClock, Flame, PiggyBank, ShieldAlert, Target, TrendingUp, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { SmartDailyBriefing } from '@/components/ui/smart-daily-briefing';
 import { TdsAllocationDialog } from '@/components/total-daily-savings';
-import { isLastDayOfMonth } from 'date-fns';
+import { useApp } from '@/hooks/use-app';
 
-function StatCard({ title, value, icon, change, changeType }: { title: string, value: string, icon: React.ReactNode, change?: string, changeType?: 'increase' | 'decrease' }) {
+function StatCard({ title, value, description, icon }: { title: string; value: string; description: string; icon: React.ReactNode }) {
   return (
-    <Card className="shadow-sm border-muted">
+    <Card className="border-muted shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {icon}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        {change && (
-          <p className="text-xs text-muted-foreground flex items-center mt-1">
-            {changeType === 'increase' ? <TrendingUp className="h-4 w-4 mr-1 text-green-500" /> : <TrendingDown className="h-4 w-4 mr-1 text-red-500" />}
-            {change}
-          </p>
-        )}
+        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
   );
 }
 
 export default function DashboardPage() {
-  const { user, profile, goals, transactions, getTodaysSpending, getTotalGoalContributions, getCumulativeDailySavings } = useApp();
-
-  const totalGoalSaved = goals.reduce((sum, g) => sum + g.currentAmount, 0);
-  const todaysSpending = getTodaysSpending();
-  const overallSpending = transactions.reduce((sum, t) => sum + t.amount, 0);
-  const income = profile?.income || 0;
-  const spendingVsIncome = income > 0 ? `${((overallSpending / income) * 100).toFixed(0)}% of income` : '';
-
-  const recentTransactions = transactions.slice(0, 7).reverse();
-  const chartData = recentTransactions.map(t => ({
-    date: new Date(t.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-    amount: t.amount,
-  }));
-
   const {
-    monthlyNeeds,
-    monthlyWants,
-    monthlySavings,
-    dailySpendingLimit,
-    goalContributions,
-  } = React.useMemo(() => {
-    if (!profile) {
-      return {
-        monthlyNeeds: 0,
-        monthlyWants: 0,
-        monthlySavings: 0,
-        dailySpendingLimit: 0,
-        goalContributions: 0,
-      };
-    }
-
-    const totalGoalContributions = getTotalGoalContributions();
-
-    return {
-      monthlyNeeds: profile.monthlyNeeds,
-      monthlyWants: profile.monthlyWants,
-      monthlySavings: profile.monthlySavings,
-      dailySpendingLimit: profile.dailySpendingLimit,
-      goalContributions: totalGoalContributions,
-    };
-  }, [profile, getTotalGoalContributions]);
-
-  const todaysSavings = dailySpendingLimit - todaysSpending;
-  const cumulativeSavings = getCumulativeDailySavings();
-
-  const emergencyFund = profile?.emergencyFund;
-  const emergencyFundProgress = emergencyFund && emergencyFund.target > 0 ? (emergencyFund.current / emergencyFund.target) * 100 : 0;
+    profile,
+    goals,
+    getTodaysSpending,
+    getCumulativeDailySavings,
+    getCurrentStreak,
+    studentAnalytics,
+  } = useApp();
 
   if (!profile) {
-    return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold mb-4">Welcome to PocketPilot!</h2>
-        <p className="text-muted-foreground mb-6">Please complete the onboarding to start managing your student finances.</p>
-        <Button asChild>
-          <Link href="/onboarding">Start Onboarding</Link>
-        </Button>
-      </div>
-    );
+    return null;
   }
+
+  const todaysSpending = getTodaysSpending();
+  const currentDailyLimit = studentAnalytics?.currentDailyLimit ?? profile.dailySpendingLimit;
+  const safeToSpend = Math.max(0, currentDailyLimit - todaysSpending);
+  const reservedAmount = studentAnalytics?.reservedForUpcomingLiabilities ?? 0;
+  const adjustedBudget = studentAnalytics?.adjustedRemainingBudget ?? profile.monthlyWants;
+  const cumulativeSavings = getCumulativeDailySavings();
+  const todaysSavings = currentDailyLimit - todaysSpending;
+  const emergencyFund = profile.emergencyFund;
+  const emergencyFundProgress = emergencyFund.target > 0 ? (emergencyFund.current / emergencyFund.target) * 100 : 0;
+  const totalGoalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+  const nextLiability = studentAnalytics?.upcomingLiabilitiesWithin30Days[0];
+  const weekendInsight = studentAnalytics?.weekendSpending;
+  const survivalMode = studentAnalytics?.survivalMode ?? false;
 
   return (
     <div className="space-y-8">
-      {/* Hero Section - Daily Safe-to-Spend */}
-      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20">
-        <CardContent className="pt-8">
-          <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">Today's Safe-to-Spend</p>
-            <div className="text-6xl md:text-7xl font-bold text-primary">
-              ₹{(dailySpendingLimit - todaysSpending).toFixed(0)}
+      {survivalMode && (
+        <Card className="border-destructive/30 bg-destructive/10 shadow-sm">
+          <CardContent className="flex items-start gap-3 py-4">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+            <div>
+              <p className="font-semibold text-destructive">Survival Mode activated.</p>
+              <p className="text-sm text-destructive/90">Reduce non-essential spending to finish the month.</p>
             </div>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <span>Limit: ₹{dailySpendingLimit.toFixed(0)}</span>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className={survivalMode ? 'border-destructive/30 bg-gradient-to-br from-destructive/10 via-background to-background' : 'border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent'}>
+        <CardContent className="pt-8">
+          <div className="space-y-3 text-center">
+            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Today's Safe-to-Spend</p>
+            <div className={survivalMode ? 'text-6xl font-bold text-destructive md:text-7xl' : 'text-6xl font-bold text-primary md:text-7xl'}>
+              ₹{safeToSpend.toFixed(0)}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground">
+              <span>Limit: ₹{currentDailyLimit.toFixed(0)}</span>
               <span>•</span>
               <span>Spent: ₹{todaysSpending.toFixed(0)}</span>
+              <span>•</span>
+              <span>{studentAnalytics?.remainingDays || 1} days left</span>
             </div>
-            {todaysSpending > dailySpendingLimit && (
-              <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p className="text-sm text-destructive font-medium">You've exceeded today's limit by ₹{(todaysSpending - dailySpendingLimit).toFixed(0)}</p>
+            <p className="text-sm text-muted-foreground">₹{reservedAmount.toFixed(0)} reserved for upcoming semester costs.</p>
+            {todaysSpending > currentDailyLimit && (
+              <div className="mx-auto mt-3 max-w-xl rounded-lg border border-destructive/20 bg-destructive/10 p-3">
+                <p className="text-sm font-medium text-destructive">You've exceeded today's limit by ₹{(todaysSpending - currentDailyLimit).toFixed(0)}</p>
               </div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Smart Daily Briefing */}
       <SmartDailyBriefing />
 
-      {/* Key Metrics */}
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard
-          title="Monthly Budget Left"
-          value={`₹${(monthlyWants - transactions.filter(t => {
-            const tDate = new Date(t.date);
-            const now = new Date();
-            return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
-          }).reduce((sum, t) => sum + t.amount, 0)).toLocaleString('en-IN', { minimumFractionDigits: 0 })}`}
+          title="Budget Left This Month"
+          value={`₹${Math.max(0, adjustedBudget).toFixed(0)}`}
+          description="After current spending and near-term semester reserves"
           icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
           title="Current Streak"
-          value={`${profile.gamification?.currentStreak || 0} days`}
+          value={`${getCurrentStreak()} days`}
+          description="Days finished within your base daily plan"
+          icon={<Flame className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatCard
+          title="Goal Savings"
+          value={`₹${totalGoalSaved.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+          description="Amount already parked toward active goals"
           icon={<Target className="h-4 w-4 text-muted-foreground" />}
         />
-        <Link href="/goals" className="block">
-          <StatCard
-            title="Total Goal Savings"
-            value={`₹${totalGoalSaved.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`}
-            icon={<Target className="h-4 w-4 text-muted-foreground" />}
-          />
-        </Link>
       </div>
 
-      {/* Total Daily Savings & Emergency Fund */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="flex flex-col border-primary/20 bg-primary/5 shadow-sm overflow-hidden">
+        <Card className="border-primary/20 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CalendarClock className="h-5 w-5 text-primary" />
+              Upcoming Semester Costs
+            </CardTitle>
+            <CardDescription>Academic liabilities due in the next 30 days.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="text-3xl font-bold">₹{reservedAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+              <p className="text-sm text-muted-foreground">Reserved from your month so you do not accidentally spend it away.</p>
+            </div>
+            {nextLiability ? (
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next due</p>
+                <p className="mt-1 font-semibold">{nextLiability.title}</p>
+                <p className="text-sm text-muted-foreground">{nextLiability.category} • {format(new Date(nextLiability.dueDate), 'MMM d')}</p>
+                <p className="mt-2 text-lg font-bold">₹{nextLiability.amount.toFixed(0)}</p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                No academic costs due in the next 30 days.
+              </div>
+            )}
+            <Button asChild className="w-full" variant="outline">
+              <Link href="/semester-planner">Open Semester Planner</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className={weekendInsight?.spikeDetected ? 'border-amber-500/30 bg-amber-500/5 shadow-sm' : 'shadow-sm'}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <TrendingUp className={weekendInsight?.spikeDetected ? 'h-5 w-5 text-amber-600' : 'h-5 w-5 text-primary'} />
+              Weekend Spending Insight
+            </CardTitle>
+            <CardDescription>Based on your last 30 days of transaction timestamps.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className={weekendInsight?.spikeDetected ? 'font-semibold text-amber-700' : 'font-semibold'}>
+                {weekendInsight?.message || 'No weekend signal yet.'}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Weekend average: ₹{weekendInsight?.weekendAverage.toFixed(0) || '0'} • Weekday average: ₹{weekendInsight?.weekdayAverage.toFixed(0) || '0'}
+              </p>
+            </div>
+            <div className="rounded-lg bg-muted/30 p-4 text-sm text-muted-foreground">
+              {weekendInsight?.spikeDetected
+                ? 'Friday to Sunday spending is materially outpacing Monday to Thursday. Keep discretionary plans tighter this weekend.'
+                : 'Your weekend spending is not materially outrunning weekday behavior right now.'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="flex flex-col overflow-hidden border-primary/20 bg-primary/5 shadow-sm">
           <div className="h-1 w-full bg-primary" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-lg font-bold">Total Daily Savings</CardTitle>
-              <CardDescription className="text-xs">Buffered from daily unspent limits</CardDescription>
+              <CardDescription className="text-xs">Buffered from unspent daily room</CardDescription>
             </div>
             <PiggyBank className="h-5 w-5 text-primary" />
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col justify-between pt-0">
+          <CardContent className="flex flex-1 flex-col justify-between pt-0">
             <div className="py-4">
               <div className="text-4xl font-bold tracking-tight">₹{cumulativeSavings.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              <p className={`text-xs mt-2 flex items-center font-medium ${todaysSavings >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {todaysSavings >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-                {todaysSavings >= 0 ? `₹${todaysSavings.toFixed(2)} saved today` : `₹${Math.abs(todaysSavings).toFixed(2)} limit exceeded today`}
+              <p className={`mt-2 text-xs font-medium ${todaysSavings >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                {todaysSavings >= 0 ? `₹${todaysSavings.toFixed(2)} left today` : `₹${Math.abs(todaysSavings).toFixed(2)} over today's plan`}
               </p>
             </div>
 
-            <div className="space-y-3">
-              {cumulativeSavings === 0 && todaysSavings < 0 && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-destructive leading-tight font-medium">
-                    Buffer exhausted. Your daily overspending is now directly impacting your planned savings.
-                  </p>
-                </div>
-              )}
-
-              <TdsAllocationDialog>
-                <Button size="sm" variant="default" className="w-full text-xs h-9 shadow-sm" disabled={cumulativeSavings <= 0 && !isLastDayOfMonth(new Date())}>
-                  <Target className="mr-2 h-3.5 w-3.5" />
-                  Allocate to Goals/EF
-                </Button>
-              </TdsAllocationDialog>
-            </div>
+            <TdsAllocationDialog>
+              <Button size="sm" variant="default" className="h-9 w-full text-xs shadow-sm" disabled={cumulativeSavings <= 0 && !isLastDayOfMonth(new Date())}>
+                <Target className="mr-2 h-3.5 w-3.5" />
+                Allocate to Goals/EF
+              </Button>
+            </TdsAllocationDialog>
           </CardContent>
         </Card>
 
         <Link href="/emergency-fund" className="block h-full">
-          <Card className="h-full hover:border-primary/50 transition-colors flex flex-col border-muted shadow-sm overflow-hidden">
+          <Card className="flex h-full flex-col overflow-hidden border-muted shadow-sm transition-colors hover:border-primary/50">
             <div className="h-1 w-full bg-orange-500" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
@@ -195,14 +210,14 @@ export default function DashboardPage() {
               </div>
               <ShieldAlert className="h-5 w-5 text-orange-500" />
             </CardHeader>
-            <CardContent className="flex-grow flex flex-col justify-between pt-0">
+            <CardContent className="flex flex-1 flex-col justify-between pt-0">
               <div className="py-4">
                 <div className="text-4xl font-bold tracking-tight">
-                  ₹{(emergencyFund?.current || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{emergencyFund.current.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                {emergencyFund && emergencyFund.target > 0 && (
+                {emergencyFund.target > 0 && (
                   <div className="mt-3 space-y-1.5">
-                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       <span>Goal: ₹{emergencyFund.target.toLocaleString('en-IN')}</span>
                       <span>{Math.round(emergencyFundProgress)}%</span>
                     </div>
@@ -210,139 +225,60 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-              <Button className="w-full text-xs h-9 mt-auto" variant="secondary">
-                Manage Emergency Fund
-              </Button>
+              <Button className="mt-auto h-9 w-full text-xs" variant="secondary">Manage Emergency Fund</Button>
             </CardContent>
           </Card>
         </Link>
       </div>
 
-      {/* Active Goals */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Active Goals</CardTitle>
-          <CardDescription>Track your savings progress</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {goals.length > 0 ? goals.map(goal => (
-            <div key={goal.id}>
-              <div className="flex justify-between mb-1.5 align-baseline">
-                <span className="text-sm font-semibold">{goal.name}</span>
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  ₹{goal.currentAmount.toLocaleString('en-IN')} / ₹{goal.targetAmount.toLocaleString('en-IN')}
-                </span>
-              </div>
-              <Progress value={(goal.currentAmount / goal.targetAmount) * 100} className="h-2" />
-            </div>
-          )) : (
-            <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-              <p className="text-sm">No active goals yet</p>
-              <Button variant="link" asChild className="mt-1 text-xs">
-                <Link href="/goals">Set one now</Link>
-              </Button>
-            </div>
-          )}
-          {goals.length > 0 && (
-            <Button className="w-full mt-4 text-xs h-9" asChild variant="outline">
-              <Link href="/goals">Manage Goals</Link>
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-        <CardHeader>
-          <CardTitle>Financial Breakdown</CardTitle>
-          <CardDescription>Monthly budget allocation across Needs, Wants, and Savings.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="p-4 rounded-xl bg-muted/20 border border-border/50 flex flex-col items-center">
-              <Wallet className="h-5 w-5 text-primary mb-2 opacity-80" />
-              <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Needs</p>
-              <p className="text-xl font-bold">₹{monthlyNeeds.toFixed(0)}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 flex flex-col items-center">
-              <ShoppingCart className="h-5 w-5 text-orange-500 mb-2 opacity-80" />
-              <p className="text-[10px] uppercase font-bold text-orange-500/70 tracking-widest">Wants</p>
-              <p className="text-xl font-bold">₹{monthlyWants.toFixed(0)}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10 flex flex-col items-center">
-              <PiggyBank className="h-5 w-5 text-green-600 mb-2 opacity-80" />
-              <p className="text-[10px] uppercase font-bold text-green-600/70 tracking-widest">Savings</p>
-              <p className="text-xl font-bold">₹{monthlySavings.toFixed(0)}</p>
-            </div>
-          </div>
-
-          <div className="space-y-3 pt-4 border-t">
-            <div className="flex justify-between items-center text-sm">
-              <span className="flex items-center gap-2 text-muted-foreground"><Target className="h-4 w-4" /> Committed to Goals</span>
-              <span className="font-semibold">₹{goalContributions.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="flex items-center gap-2 text-muted-foreground"><ShieldCheck className="h-4 w-4" /> Available for Buffer</span>
-              <span className="font-semibold">₹{Math.max(0, monthlySavings - goalContributions).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between items-center text-base font-bold pt-2 border-t">
-              <span>Total Savings Target</span>
-              <span>₹{monthlySavings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="h-full shadow-sm">
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Recent Spending</CardTitle>
+            <CardTitle>Financial Breakdown</CardTitle>
+            <CardDescription>Base student budget split before liability adjustments.</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData} margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: number) => `₹${value.toFixed(2)}`}
-                />
-                <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <span className="text-sm text-muted-foreground">Needs</span>
+              <span className="font-bold">₹{profile.monthlyNeeds.toFixed(0)}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <span className="text-sm text-muted-foreground">Wants Pool</span>
+              <span className="font-bold">₹{profile.monthlyWants.toFixed(0)}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <span className="text-sm text-muted-foreground">Savings Target</span>
+              <span className="font-bold">₹{profile.monthlySavings.toFixed(0)}</span>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="h-full shadow-sm">
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Active Goals</CardTitle>
+            <CardDescription>Track your savings progress.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {goals.length > 0 ? goals.map(goal => (
+            {goals.length > 0 ? goals.map((goal) => (
               <div key={goal.id}>
-                <div className="flex justify-between mb-1.5 align-baseline">
+                <div className="mb-1.5 flex justify-between align-baseline">
                   <span className="text-sm font-semibold">{goal.name}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
+                  <span className="text-[10px] font-mono text-muted-foreground">
                     ₹{goal.currentAmount.toLocaleString('en-IN')} / ₹{goal.targetAmount.toLocaleString('en-IN')}
                   </span>
                 </div>
                 <Progress value={(goal.currentAmount / goal.targetAmount) * 100} className="h-2" />
               </div>
             )) : (
-              <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-                <p className="text-sm">No active goals yet.</p>
+              <div className="rounded-lg border-2 border-dashed py-10 text-center text-muted-foreground">
+                <p className="text-sm">No active goals yet</p>
                 <Button variant="link" asChild className="mt-1 text-xs">
                   <Link href="/goals">Set one now</Link>
                 </Button>
               </div>
             )}
             {goals.length > 0 && (
-              <Button className="w-full mt-4 text-xs h-9" asChild variant="outline">
+              <Button className="mt-4 h-9 w-full text-xs" asChild variant="outline">
                 <Link href="/goals">Manage Goals</Link>
               </Button>
             )}

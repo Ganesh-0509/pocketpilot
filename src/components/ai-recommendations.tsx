@@ -10,7 +10,7 @@ import { Wand2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function AiRecommendations() {
-  const { profile, goals, transactions } = useApp();
+  const { profile, goals, transactions, studentAnalytics } = useApp();
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -43,7 +43,7 @@ export function AiRecommendations() {
           name: t.category,
           amount: t.amount,
         })),
-        discretionarySpendingLimit: profile.dailySpendingLimit,
+        discretionarySpendingLimit: studentAnalytics?.currentDailyLimit || profile.dailySpendingLimit,
       };
 
       const result = await getExpenseAdjustmentRecommendations(input);

@@ -13,6 +13,46 @@ export interface SemesterFee {
   dueDate: string; // ISO string
 }
 
+export const semesterLiabilityCategories = [
+  'Semester Fees',
+  'Exam Form Fees',
+  'Books',
+  'Project Expenses',
+  'Fest Budgets',
+] as const;
+
+export type SemesterLiabilityCategory = typeof semesterLiabilityCategories[number];
+
+export interface SemesterLiability {
+  id: string;
+  title: string;
+  amount: number;
+  dueDate: string; // ISO string
+  category: SemesterLiabilityCategory;
+  createdAt: string; // ISO string
+}
+
+export interface WeekendSpendingInsight {
+  weekendAverage: number;
+  weekdayAverage: number;
+  spikeDetected: boolean;
+  message: string;
+}
+
+export interface StudentAnalytics {
+  effectiveMonthlyIncome: number;
+  remainingBudget: number;
+  adjustedRemainingBudget: number;
+  reservedForUpcomingLiabilities: number;
+  remainingDays: number;
+  currentDailyLimit: number;
+  baselineDailyLimit: number;
+  survivalMode: boolean;
+  minimumDailyThreshold: number;
+  upcomingLiabilitiesWithin30Days: SemesterLiability[];
+  weekendSpending: WeekendSpendingInsight;
+}
+
 export interface UserProfile {
   name?: string;
   userType: UserType;

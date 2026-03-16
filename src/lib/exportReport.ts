@@ -11,8 +11,8 @@ export function buildOrganizedReport({ profile, transactions = [], goals = [] }:
     generatedAt: new Date().toISOString(),
     summary: {
       name: profile?.name ?? null,
-      role: profile?.role ?? null,
-      income: profile?.income ?? null,
+      role: profile?.userType ?? null,
+      income: profile?.monthlyIncome ?? null,
       monthlyNeeds: profile?.monthlyNeeds ?? null,
       monthlyWants: profile?.monthlyWants ?? null,
       monthlySavings: profile?.monthlySavings ?? null,

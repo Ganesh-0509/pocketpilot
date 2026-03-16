@@ -1,15 +1,16 @@
 "use client";
 
-import React, { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import type { UserProfile, Goal, Transaction, FixedExpense, LoggedPayments, Contribution, EmergencyFundEntry } from '@/lib/types';
+import React, { createContext, useState, ReactNode, useEffect, useCallback, useMemo } from 'react';
+import type { UserProfile, Goal, Transaction, FixedExpense, LoggedPayments, Contribution, EmergencyFundEntry, SemesterLiability, StudentAnalytics } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { FirestoreService } from '@/lib/firestore';
+import { type User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { SupabaseService } from '@/lib/supabase-service';
 import { useRouter } from 'next/navigation';
 import { format, formatISO, startOfDay, parseISO, subDays, isAfter, isSameDay, isBefore, addDays, startOfMonth } from 'date-fns';
 import { BADGES, Badge, DEFAULT_GAMIFICATION_STATE, checkBadgeEligibility, BadgeCheckContext } from '@/lib/gamification';
-import { calculateStudentBudget } from '@/lib/utils';
+import { calculateEffectiveMonthlyIncome, calculateStudentBudget } from '@/lib/utils';
+import { calculateStudentAnalytics } from '@/lib/student-intelligence';
 
 interface AppContextType {
   user: User | null | undefined;
@@ -17,10 +18,14 @@ interface AppContextType {
   profile: UserProfile | null | undefined; // Allow undefined for initial loading state
   goals: Goal[];
   transactions: Transaction[];
+  semesterLiabilities: SemesterLiability[];
+  studentAnalytics: StudentAnalytics | null;
   onboardingComplete: boolean;
   updateProfile: (profile: Partial<Omit<UserProfile, 'monthlyNeeds' | 'monthlyWants' | 'monthlySavings' | 'dailySpendingLimit'>>) => void;
   addGoal: (goal: Omit<Goal, 'id' | 'currentAmount' | 'contributions'>) => void;
   addTransaction: (transaction: Omit<Transaction, 'id' | 'date'> & { date?: string }) => void;
+  addSemesterLiability: (liability: Omit<SemesterLiability, 'id' | 'createdAt'>) => Promise<void>;
+  deleteSemesterLiability: (liabilityId: string) => Promise<void>;
   updateGoal: (goalId: string, updatedGoal: Partial<Omit<Goal, 'id'>>) => void;
   getTodaysSpending: () => number;
   logout: () => void;
@@ -60,23 +65,30 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined); // Start as undefined
   const [goals, setGoals] = useState<Goal[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [semesterLiabilities, setSemesterLiabilities] = useState<SemesterLiability[]>([]);
   const [loggedPayments, setLoggedPayments] = useState<LoggedPayments>({});
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [authLoaded, setAuthLoaded] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('Auth state changed:', currentUser ? `User ${currentUser.uid} logged in` : 'No user');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user || null;
+      console.log('Auth state changed:', currentUser ? `User ${currentUser.id} logged in` : 'No user');
       setUser(currentUser);
       if (currentUser) {
         try {
-          // Load profile from Firestore
-          const userProfile = await FirestoreService.getProfile(currentUser.uid);
+          // Load profile from Supabase
+          const userProfile = await SupabaseService.getProfile(currentUser.id);
           if (userProfile) {
-            const fixedExpensesTotal = userProfile.fixedExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
-            const budget = calculateStudentBudget(userProfile.monthlyIncome || userProfile.income, fixedExpensesTotal);
+            const fixedExpenses = userProfile.fixedExpenses || [];
+            const fixedExpensesTotal = fixedExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+            const monthlyIncome = userProfile.monthlyIncome ?? (userProfile as UserProfile & { income?: number }).income ?? 0;
+            const effectiveIncome = calculateEffectiveMonthlyIncome(monthlyIncome, userProfile.internshipIncome || 0);
+            const budget = calculateStudentBudget(effectiveIncome, fixedExpensesTotal);
             const updatedProfile = {
               ...userProfile,
+              monthlyIncome,
+              fixedExpenses,
               ...budget,
               emergencyFund: userProfile.emergencyFund || { target: 0, current: 0, history: [] },
               gamification: userProfile.gamification || DEFAULT_GAMIFICATION_STATE,
@@ -87,16 +99,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             setProfile(null);
           }
 
-          // Load goals from Firestore
-          const userGoals = await FirestoreService.getGoals(currentUser.uid);
+          // Load goals from Supabase
+          const userGoals = await SupabaseService.getGoals(currentUser.id);
           setGoals(userGoals || []);
 
-          // Load transactions from Firestore
-          const userTransactions = await FirestoreService.getTransactions(currentUser.uid);
+          // Load transactions from Supabase
+          const userTransactions = await SupabaseService.getTransactions(currentUser.id);
           setTransactions(userTransactions || []);
 
-          // Load logged payments from Firestore
-          const firestoreLoggedPayments = await FirestoreService.getLoggedPayments(currentUser.uid);
+          const userSemesterLiabilities = await SupabaseService.getSemesterLiabilities(currentUser.id);
+          setSemesterLiabilities(userSemesterLiabilities || []);
+
+          // Load logged payments from Supabase
+          const firestoreLoggedPayments = await SupabaseService.getLoggedPayments(currentUser.id);
           if (firestoreLoggedPayments) {
             setLoggedPayments(firestoreLoggedPayments);
           } else {
@@ -105,7 +120,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             const initialPayments = storedLoggedPayments ? JSON.parse(storedLoggedPayments) : {};
             setLoggedPayments(initialPayments);
             if (Object.keys(initialPayments).length > 0) {
-              await FirestoreService.saveLoggedPayments(currentUser.uid, initialPayments);
+              await SupabaseService.saveLoggedPayments(currentUser.id, initialPayments);
             }
           }
 
@@ -118,13 +133,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setProfile(null);
         setGoals([]);
         setTransactions([]);
+        setSemesterLiabilities([]);
         setLoggedPayments({});
         setOnboardingComplete(false);
       }
       // Mark that auth state has been determined at least once
       setAuthLoaded(true);
     });
-    return () => unsubscribe();
+    return () => { subscription.unsubscribe(); };
   }, []);
 
   const persistState = (key: string, value: any) => {
@@ -141,6 +157,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Prepare base profile data
       const income = newProfileData.monthlyIncome ?? profile?.monthlyIncome ?? 0;
+      const internshipIncome = newProfileData.internshipIncome ?? profile?.internshipIncome ?? 0;
       const fixedExpenses = newProfileData.fixedExpenses?.map(exp => ({
         id: exp.id || crypto.randomUUID(),
         name: exp.name || '',
@@ -151,7 +168,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       })) ?? profile?.fixedExpenses ?? [];
 
       const fixedExpensesTotal = fixedExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
-      const budget = calculateStudentBudget(income, fixedExpensesTotal);
+      const effectiveIncome = calculateEffectiveMonthlyIncome(income, internshipIncome);
+      const budget = calculateStudentBudget(effectiveIncome, fixedExpensesTotal);
 
       // Create a complete profile object with all required fields
       const updatedProfile: UserProfile = {
@@ -161,7 +179,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         collegeName: newProfileData.collegeName || profile?.collegeName || '',
         livingType: newProfileData.livingType || profile?.livingType || 'hostel',
         monthlyIncome: income,
-        internshipIncome: newProfileData.internshipIncome,
+        internshipIncome: internshipIncome || undefined,
         recurringExpenses: newProfileData.recurringExpenses || profile?.recurringExpenses || [],
         semesterFees: newProfileData.semesterFees || profile?.semesterFees,
         fixedExpenses,
@@ -172,12 +190,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           history: newProfileData.emergencyFund?.history ?? profile?.emergencyFund?.history ?? []
         },
         gamification: profile?.gamification || DEFAULT_GAMIFICATION_STATE,
+        createdAt: profile?.createdAt || formatISO(new Date()),
+        updatedAt: formatISO(new Date()),
       };
 
       // Debug log before saving
       console.log('About to save profile:', JSON.stringify(updatedProfile, null, 2));
 
-      await FirestoreService.updateProfile(user.uid, updatedProfile);
+      await SupabaseService.updateProfile(user.id, updatedProfile);
       setProfile(updatedProfile);
       setOnboardingComplete(true);
 
@@ -196,6 +216,53 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addSemesterLiability = async (liabilityData: Omit<SemesterLiability, 'id' | 'createdAt'>) => {
+    if (!user) return;
+
+    try {
+      const newLiability: SemesterLiability = {
+        ...liabilityData,
+        id: crypto.randomUUID(),
+        createdAt: formatISO(new Date()),
+      };
+
+      await SupabaseService.saveSemesterLiability(user.id, newLiability);
+      setSemesterLiabilities((prev) => [...prev, newLiability].sort((left, right) => left.dueDate.localeCompare(right.dueDate)));
+
+      toast({
+        title: 'Semester cost added',
+        description: `${newLiability.title} is now reserved in your planner.`,
+      });
+    } catch (error) {
+      console.error('Failed to add semester liability:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add semester cost',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteSemesterLiability = async (liabilityId: string) => {
+    if (!user) return;
+
+    try {
+      await SupabaseService.deleteSemesterLiability(user.id, liabilityId);
+      setSemesterLiabilities((prev) => prev.filter((liability) => liability.id !== liabilityId));
+      toast({
+        title: 'Semester cost removed',
+        description: 'The liability has been removed from your planner.',
+      });
+    } catch (error) {
+      console.error('Failed to delete semester liability:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove semester cost',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const addGoal = async (goalData: Omit<Goal, 'id' | 'currentAmount' | 'contributions'>) => {
     if (!user) return;
 
@@ -208,7 +275,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         contributions: [],
       };
 
-      await FirestoreService.saveGoal(user.uid, newGoal);
+      await SupabaseService.saveGoal(user.id, newGoal);
       setGoals(prev => [...prev, newGoal]);
 
       toast({
@@ -236,7 +303,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         date: formatISO(new Date()),
       };
 
-      await FirestoreService.saveTransaction(user.uid, newTransaction);
+      await SupabaseService.saveTransaction(user.id, newTransaction);
       setTransactions(prev => [newTransaction, ...prev]);
 
       toast({
@@ -277,7 +344,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ...updatedData
       };
 
-      await FirestoreService.saveTransaction(user.uid, updatedTransaction);
+      await SupabaseService.saveTransaction(user.id, updatedTransaction);
       setTransactions(prev => prev.map(t => t.id === transactionId ? updatedTransaction : t));
 
       toast({
@@ -298,7 +365,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
 
     try {
-      await FirestoreService.deleteTransaction(user.uid, transactionId);
+      await SupabaseService.deleteTransaction(user.id, transactionId);
       setTransactions(prev => prev.filter(t => t.id !== transactionId));
 
       toast({
@@ -396,6 +463,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return balance;
   }, [profile, transactions]);
 
+  const studentAnalytics = useMemo(() => {
+    if (!profile) {
+      return null;
+    }
+
+    return calculateStudentAnalytics(profile, transactions, semesterLiabilities);
+  }, [profile, transactions, semesterLiabilities]);
+
   const contributeToGoal = (goalId: string, amount: number) => {
     const newContribution: Contribution = {
       amount,
@@ -453,7 +528,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     persistState(LOGGED_PAYMENTS_KEY, updatedLoggedPayments);
 
     if (user) {
-      FirestoreService.saveLoggedPayments(user.uid, updatedLoggedPayments).catch(err => {
+      SupabaseService.saveLoggedPayments(user.id, updatedLoggedPayments).catch(err => {
         console.error("Failed to sync logged payments:", err);
       });
     }
@@ -487,7 +562,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     persistState(PROFILE_KEY, updatedProfile);
 
     if (user) {
-      FirestoreService.updateProfile(user.uid, updatedProfile).catch(err => {
+      SupabaseService.updateProfile(user.id, updatedProfile).catch(err => {
         console.error("Failed to sync emergency fund:", err);
       });
     }
@@ -511,7 +586,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     persistState(PROFILE_KEY, updatedProfile);
 
     if (user) {
-      FirestoreService.updateProfile(user.uid, updatedProfile).catch(err => {
+      SupabaseService.updateProfile(user.id, updatedProfile).catch(err => {
         console.error("Failed to sync emergency fund target:", err);
       });
     }
@@ -525,7 +600,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const deleteGoal = async (goalId: string) => {
     if (!user) return;
     try {
-      await FirestoreService.deleteGoal(user.uid, goalId);
+      await SupabaseService.deleteGoal(user.id, goalId);
       const updatedGoals = goals.filter(g => g.id !== goalId);
       setGoals(updatedGoals);
       persistState(GOALS_KEY, updatedGoals);
@@ -563,7 +638,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Save goals to Firestore
         await Promise.all(allocation.goals.map(async (a) => {
           const goal = updatedGoals.find(g => g.id === a.goalId);
-          if (goal) await FirestoreService.saveGoal(user.uid, goal);
+          if (goal) await SupabaseService.saveGoal(user.id, goal);
         }));
         setGoals(updatedGoals);
       }
@@ -596,7 +671,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         };
       }
 
-      await FirestoreService.updateProfile(user.uid, updatedProfile);
+      await SupabaseService.updateProfile(user.id, updatedProfile);
       setProfile(updatedProfile);
 
       toast({
@@ -616,7 +691,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
       router.push('/login');
     } catch (error) {
       console.error("Logout failed", error);
@@ -635,10 +710,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem(TRANSACTIONS_KEY);
       localStorage.removeItem(LOGGED_PAYMENTS_KEY);
 
-      if (auth.currentUser) {
-        const userId = auth.currentUser.uid;
-        await FirestoreService.deleteUserData(userId);
-        await signOut(auth);
+      if (user) {
+        const userId = user.id;
+        await SupabaseService.deleteUserData(userId);
+        // Supabase doesn't let users delete their own account client-side by default without a custom function,
+        // but removing the data and signing out works as a soft delete for the app layer.
+        await supabase.auth.signOut();
       }
 
       toast({
@@ -748,7 +825,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     try {
-      await FirestoreService.updateProfile(user.uid, updatedProfile);
+      await SupabaseService.updateProfile(user.id, updatedProfile);
       setProfile(updatedProfile);
 
       toast({
@@ -807,7 +884,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       currentStreak: streak,
       longestStreak: profile.gamification?.longestStreak || 0,
       totalSaved,
-      monthlyIncome: profile.income,
+      monthlyIncome: profile.monthlyIncome,
       monthlySavings: profile.monthlySavings,
       emergencyFund: profile.emergencyFund?.current || 0,
       monthlyExpenses: profile.monthlyNeeds + profile.monthlyWants,
@@ -839,7 +916,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     } else {
       // Just update the check date
-      await FirestoreService.updateProfile(user.uid, updatedProfile);
+      await SupabaseService.updateProfile(user.id, updatedProfile);
       setProfile(updatedProfile);
     }
   }, [profile, user, transactions, goals, getCurrentStreak, getCumulativeDailySavings, getTodaysSpending]);
@@ -854,7 +931,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         checkAndAwardBadges();
       }
     }
-  }, [profile?.id, authLoaded]);
+  }, [profile, user, authLoaded, checkAndAwardBadges]);
 
   const value: AppContextType = {
     user,
@@ -862,10 +939,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     profile,
     goals,
     transactions,
+    semesterLiabilities,
+    studentAnalytics,
     onboardingComplete,
     updateProfile,
     addGoal,
     addTransaction,
+    addSemesterLiability,
+    deleteSemesterLiability,
     updateGoal,
     getTodaysSpending,
     logout,

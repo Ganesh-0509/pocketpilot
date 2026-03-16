@@ -19,7 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
-import { cn, calculateStudentBudget } from '@/lib/utils';
+import { cn, calculateEffectiveMonthlyIncome, calculateStudentBudget } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 
 const recurringExpenseSchema = z.object({
@@ -97,7 +97,7 @@ export default function OnboardingPage() {
   const { monthlyNeeds, monthlyWants, monthlySavings, dailySpendingLimit } = React.useMemo(() => {
     const pocketMoney = Number(watchedIncome) || 0;
     const internship = watchedHasInternship ? (Number(watchedInternshipIncome) || 0) : 0;
-    const totalIncome = pocketMoney + internship;
+    const totalIncome = calculateEffectiveMonthlyIncome(pocketMoney, internship);
     const recurringExpenses = watchedRecurringExpenses || [];
     const recurringTotal = recurringExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
 
@@ -125,13 +125,11 @@ export default function OnboardingPage() {
       category: exp.category,
     }));
 
-    const totalIncome = data.monthlyIncome + (data.hasInternship ? (data.internshipIncome || 0) : 0);
-
     const profileData = {
       userType: 'student' as const,
       collegeName: data.collegeName,
       livingType: data.livingType,
-      monthlyIncome: totalIncome,
+      monthlyIncome: data.monthlyIncome,
       internshipIncome: data.hasInternship ? data.internshipIncome : undefined,
       recurringExpenses: recurringExpensesData,
       semesterFees: semesterFeesData.length > 0 ? semesterFeesData : undefined,
@@ -473,77 +471,6 @@ export default function OnboardingPage() {
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold">Daily Safe-to-Spend</span>
                       <span className="text-xs text-muted-foreground">Your daily discretionary budget</span>
-                    </div>
-                    <div className="text-xl font-bold text-primary">₹{dailySpendingLimit.toFixed(2)}</div>
-                  </div>
-                </CardFooter>
-              </Card>
-
-              <Button type="submit" className="w-full" size="lg">Complete Setup</Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-                                          <span>Pick a date</span>
-                                        )}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                      </Button>
-                                    </FormControl>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                      mode="single"
-                                      selected={field.value ? new Date(field.value) : undefined}
-                                      onSelect={(date) => field.onChange(date?.toISOString())}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => append({ name: '', amount: 0, category: 'Other', timelineMonths: null, startDate: undefined })}
-                >
-                  Add Expense
-                </Button>
-              </div>
-
-              <Card className="bg-secondary/50">
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Financial Breakdown</CardTitle>
-                  <CardDescription>Based on your income, we suggest following the 50/30/20 rule: 50% Needs, 30% Wants, 20% Savings.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <SummaryCard title="Needs" amount={monthlyNeeds} icon={<Wallet className="h-5 w-5 text-primary" />} description="Your total fixed costs." />
-                  <SummaryCard title="Wants" amount={monthlyWants} icon={<ShoppingCart className="h-5 w-5 text-accent" />} description="For discretionary spending." />
-                  <SummaryCard title="Savings" amount={monthlySavings} icon={<PiggyBank className="h-5 w-5 text-green-500" />} description="For goals & emergencies." />
-                  <Alert>
-                    <ShieldAlert className="h-4 w-4" />
-                    <AlertTitle>Emergency Fund</AlertTitle>
-                    <AlertDescription>
-                      You can set a target and contribute to your emergency fund from the dedicated 'Emergency Fund' page after setup.
-                    </AlertDescription>
-                  </Alert>
-                </CardContent>
-                <CardFooter>
-                  <div className="w-full flex justify-between items-center p-3 rounded-lg bg-primary/10">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold">Suggested Daily Spending</span>
-                      <span className="text-xs text-muted-foreground">This is your 'Wants' budget per day.</span>
                     </div>
                     <div className="text-xl font-bold text-primary">₹{dailySpendingLimit.toFixed(2)}</div>
                   </div>

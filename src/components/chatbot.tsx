@@ -23,7 +23,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { profile, transactions, goals } = useApp();
+  const { profile, transactions, studentAnalytics } = useApp();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -82,8 +82,8 @@ export default function Chatbot() {
     try {
       const assistantInput: ConversationalFinanceAssistantInput = {
         query: input,
-        totalMonthlyIncome: profile.income,
-        dailySpendingLimit: profile.dailySpendingLimit,
+        totalMonthlyIncome: studentAnalytics?.effectiveMonthlyIncome || profile.monthlyIncome,
+        dailySpendingLimit: studentAnalytics?.currentDailyLimit || profile.dailySpendingLimit,
         essentialExpensesLogged: essentialExpensesLogged,
         discretionaryExpensesLogged: discretionaryExpensesLogged,
         savingsGoal: profile.monthlySavings,

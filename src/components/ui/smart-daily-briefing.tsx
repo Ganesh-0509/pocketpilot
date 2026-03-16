@@ -11,7 +11,7 @@ import { format, getDate, getDaysInMonth, subDays, addDays, parseISO, startOfDay
 import Link from 'next/link';
 
 export function SmartDailyBriefing() {
-    const { profile, transactions, getTodaysSpending, getCurrentStreak, getEarnedBadges } = useApp();
+    const { profile, transactions, getTodaysSpending, getCurrentStreak, getEarnedBadges, studentAnalytics } = useApp();
     const [briefing, setBriefing] = useState<DailyBriefingOutput | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -39,6 +39,7 @@ export function SmartDailyBriefing() {
                     .filter(t => new Date(t.date) >= monthStart)
                     .reduce((sum, t) => sum + t.amount, 0);
                 const remainingMonthlyBudget = profile.monthlyWants - monthlySpending;
+                const effectiveDailyLimit = studentAnalytics?.currentDailyLimit || profile.dailySpendingLimit;
 
                 // Extract today's transactions for the AI
                 const today = startOfDay(now);
@@ -53,10 +54,12 @@ export function SmartDailyBriefing() {
                 // Create a hash of the current state to avoid redundant calls
                 const todaysSpending = getTodaysSpending();
                 currentHash = JSON.stringify({
-                    income: profile.income,
-                    limit: profile.dailySpendingLimit,
+                    income: studentAnalytics?.effectiveMonthlyIncome || profile.monthlyIncome,
+                    limit: effectiveDailyLimit,
                     spent: todaysSpending,
                     remaining: remainingMonthlyBudget,
+                    reserved: studentAnalytics?.reservedForUpcomingLiabilities || 0,
+                    survivalMode: studentAnalytics?.survivalMode || false,
                     txCount: transactions.length,
                     todayTxHash: JSON.stringify(todaysTransactions)
                 });
@@ -109,7 +112,7 @@ export function SmartDailyBriefing() {
 
                 const avgDailySpend = divisor > 0 ? totalRecentSpent / divisor : 0;
 
-                if (avgDailySpend > profile.dailySpendingLimit && remainingMonthlyBudget > 0 && avgDailySpend > 0) {
+                if (avgDailySpend > effectiveDailyLimit && remainingMonthlyBudget > 0 && avgDailySpend > 0) {
                     const daysUntilEmpty = remainingMonthlyBudget / avgDailySpend;
                     if (daysUntilEmpty < 365) {
                         const runOutDateObj = addDays(now, Math.ceil(daysUntilEmpty));
@@ -132,18 +135,21 @@ export function SmartDailyBriefing() {
                     .reduce((sum, t) => sum + t.amount, 0);
 
                 const input: DailyBriefingInput = {
-                    income: profile.income,
-                    dailySpendingLimit: profile.dailySpendingLimit,
+                    income: studentAnalytics?.effectiveMonthlyIncome || profile.monthlyIncome,
+                    dailySpendingLimit: effectiveDailyLimit,
                     todaysSpending,
                     dayOfWeek,
                     daysLeftInMonth,
-                    remainingMonthlyBudget,
+                    remainingMonthlyBudget: studentAnalytics?.adjustedRemainingBudget ?? remainingMonthlyBudget,
                     todaysTransactions,
                     recentTransactions,
                     runOutDate,
                     essentialExpensesLogged,
                     discretionaryExpensesLogged,
                     savingsGoal: profile.monthlySavings,
+                    reservedForUpcomingSemesterCosts: studentAnalytics?.reservedForUpcomingLiabilities || 0,
+                    survivalMode: studentAnalytics?.survivalMode || false,
+                    weekendSpendingSpike: studentAnalytics?.weekendSpending.spikeDetected || false,
                 };
 
                 const result = await getDailyBriefing(input);
@@ -153,11 +159,14 @@ export function SmartDailyBriefing() {
                 console.error('Failed to fetch daily briefing:', err);
                 setError('Could not load your daily briefing');
                 setLastInputHash(currentHash); // Avoid infinite loop on errors
-                const spendable = Math.max(0, (profile?.dailySpendingLimit || 0) - getTodaysSpending());
+                const spendable = Math.max(0, (studentAnalytics?.currentDailyLimit || profile?.dailySpendingLimit || 0) - getTodaysSpending());
                 setBriefing({
                     spendableToday: spendable,
                     mainMessage: `You can spend ₹${spendable.toFixed(0)} today.`,
-                    reasoning: 'Based on your daily spending limit.',
+                    reasoning: 'Based on your current daily spending limit after reserved semester costs.',
+                    warningMessage: studentAnalytics?.survivalMode
+                        ? 'Survival Mode activated. Reduce non-essential spending to finish the month.'
+                        : undefined,
                 });
             } finally {
                 setIsLoading(false);
@@ -165,7 +174,7 @@ export function SmartDailyBriefing() {
         }
 
         fetchBriefing();
-    }, [profile, transactions, getTodaysSpending]);
+    }, [profile, transactions, getTodaysSpending, studentAnalytics]);
 
     if (!profile) {
         return null;

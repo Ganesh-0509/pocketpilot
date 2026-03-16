@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { calculateEffectiveMonthlyIncome } from '@/lib/utils';
 
 export const PdfExport = () => {
   const { user, profile, goals, transactions } = useApp();
@@ -39,14 +40,16 @@ export const PdfExport = () => {
   const computeMetrics = () => {
     if (!profile) return null;
 
+    const effectiveIncome = calculateEffectiveMonthlyIncome(profile.monthlyIncome || 0, profile.internshipIncome || 0);
+
     const monthlyNeeds = profile.fixedExpenses.reduce(
       (sum, expense) => sum + expense.amount,
       0
     );
-    const disposable = Math.max(profile.income - monthlyNeeds, 0);
-    const wants = disposable * 0.6;
-    const savings = disposable * 0.4;
-    const dailyLimit = wants / 30;
+    const disposable = Math.max(effectiveIncome - monthlyNeeds, 0);
+    const wants = profile.monthlyWants;
+    const savings = profile.monthlySavings;
+    const dailyLimit = profile.dailySpendingLimit;
 
     // Calculate emergency fund progress
     const emergencyFundProgress = (profile.emergencyFund.current / profile.emergencyFund.target) * 100;
@@ -63,6 +66,7 @@ export const PdfExport = () => {
       wants,
       savings,
       dailyLimit,
+      effectiveIncome,
       fixedCount: profile.fixedExpenses.length,
       emergencyFund: profile.emergencyFund,
       emergencyFundProgress,
@@ -75,7 +79,7 @@ export const PdfExport = () => {
     if (!metrics || !profile) return [];
     
     const insights = [];
-    const needsRatio = metrics.monthlyNeeds / profile.income;
+    const needsRatio = metrics.effectiveIncome > 0 ? metrics.monthlyNeeds / metrics.effectiveIncome : 0;
     
     // Budget Health
     if (needsRatio > 0.5) {
@@ -83,15 +87,15 @@ export const PdfExport = () => {
     }
 
     // Emergency Fund
-    const emergencyMonths = metrics.emergencyFund.current / (profile.income / 12);
+    const emergencyMonths = metrics.effectiveIncome > 0 ? metrics.emergencyFund.current / (metrics.effectiveIncome / 12) : 0;
     if (metrics.emergencyFundProgress < 100) {
       insights.push(`Emergency fund is at ${metrics.emergencyFundProgress.toFixed(1)}% of target. Currently covers ${emergencyMonths.toFixed(1)} months of expenses. Aim for 6 months coverage.`);
     }
 
     // Savings Rate
-    const savingsRate = (metrics.savings / profile.income) * 100;
+    const savingsRate = metrics.effectiveIncome > 0 ? (metrics.savings / metrics.effectiveIncome) * 100 : 0;
     if (savingsRate < 20) {
-      insights.push(`Your savings rate is ${savingsRate.toFixed(1)}%. Consider increasing monthly savings by ${formatINR(profile.income * 0.2 - metrics.savings)}.`);
+      insights.push(`Your savings rate is ${savingsRate.toFixed(1)}%. Consider increasing monthly savings by ${formatINR(metrics.effectiveIncome * 0.2 - metrics.savings)}.`);
     }
 
     // Category Analysis
@@ -102,7 +106,7 @@ export const PdfExport = () => {
     }
 
     // Daily Spending
-    if (metrics.dailyLimit < profile.income * 0.001) {
+    if (metrics.dailyLimit < metrics.effectiveIncome * 0.001) {
       insights.push(`Your daily spending limit of ${formatINR(metrics.dailyLimit)} is quite restrictive. Consider reviewing your budget allocation.`);
     }
 
@@ -128,10 +132,10 @@ export const PdfExport = () => {
       // Header with better spacing and styling
       doc.setFontSize(24);
       doc.setTextColor(41, 37, 36);
-      doc.text("FinMate Financial Report", pageWidth / 2, 25, { align: "center" });
+      doc.text("PocketPilot Financial Report", pageWidth / 2, 25, { align: "center" });
       
       // Underline the title
-      const titleWidth = doc.getTextWidth("FinMate Financial Report");
+      const titleWidth = doc.getTextWidth("PocketPilot Financial Report");
       doc.setLineWidth(0.5);
       doc.line(pageWidth / 2 - titleWidth / 2, 28, pageWidth / 2 + titleWidth / 2, 28);
       
@@ -169,7 +173,7 @@ export const PdfExport = () => {
       doc.setTextColor(71, 71, 71);
       
       const summaryData = [
-        ["Monthly Income:", formatINR(profile.income)],
+        ["Monthly Income:", formatINR(metrics.effectiveIncome)],
         ["Fixed Expenses:", formatINR(metrics.monthlyNeeds)],
         ["Available for Wants:", formatINR(metrics.wants)],
         ["Recommended Savings:", formatINR(metrics.savings)],

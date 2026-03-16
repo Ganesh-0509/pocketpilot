@@ -40,7 +40,7 @@ export function DashboardHeader() {
     return emailOrName.charAt(0).toUpperCase();
   }
   
-  const avatarIdentifier = profile?.name || user?.displayName || user?.email || 'user';
+  const avatarIdentifier = profile?.name || user?.user_metadata?.name || user?.email || 'user';
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
