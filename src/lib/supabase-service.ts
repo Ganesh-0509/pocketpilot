@@ -49,7 +49,7 @@ export class SupabaseService {
   static async getProfile(userId: string): Promise<UserProfile | null> {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id,college_name,living_type,monthly_pocket_money,internship_income,semester_start_date,semester_end_date,created_at,updated_at')
       .eq('id', userId)
       .single();
 
@@ -91,7 +91,7 @@ export class SupabaseService {
   static async getGoals(userId: string): Promise<Goal[]> {
     const { data, error } = await supabase
       .from('goals')
-      .select('*')
+      .select('id,user_id,name,target_amount,current_amount,monthly_contribution,timeline_months,start_date,contributions')
       .eq('user_id', userId);
 
     if (error) {
@@ -136,7 +136,7 @@ export class SupabaseService {
   static async getTransactions(userId: string): Promise<Transaction[]> {
     const { data, error } = await supabase
       .from('transactions')
-      .select('*')
+      .select('id,user_id,amount,category,description,date')
       .eq('user_id', userId)
       .order('date', { ascending: false });
 
@@ -182,7 +182,7 @@ export class SupabaseService {
   static async getSemesterLiabilities(userId: string): Promise<SemesterLiability[]> {
     const { data, error } = await supabase
       .from('semester_liabilities')
-      .select('*')
+      .select('id,user_id,title,amount,due_date,category,created_at')
       .eq('user_id', userId)
       .order('due_date', { ascending: true });
 
@@ -263,7 +263,7 @@ export class SupabaseService {
   static async getLoggedPayments(userId: string): Promise<any> {
     const { data, error } = await supabase
       .from('logged_payments')
-      .select('*')
+      .select('user_id,expense_id,month')
       .eq('user_id', userId);
 
     if (error) {

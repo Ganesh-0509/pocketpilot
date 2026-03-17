@@ -28,7 +28,7 @@ const features = [
   {
     icon: <Bot className="h-10 w-10 text-primary" />,
     title: "AI-Powered Chatbot",
-    description: "Get financial advice, simulate scenarios, and receive role-specific tips from our Gemini-powered chatbot.",
+    description: "Get financial advice, simulate scenarios, and receive student-focused tips from our Gemini-powered chatbot.",
   },
   {
     icon: <BarChart className="h-10 w-10 text-primary" />,
@@ -65,8 +65,8 @@ export default function LandingPage() {
           <Link href="/" className="mr-6 flex items-center space-x-3">
             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
               <Image
-                src="/FINMATE.png"
-                alt="FinMate"
+                src="/PocketPilot.png"
+                alt="PocketPilot"
                 width={28}
                 height={28}
                 className="object-contain"

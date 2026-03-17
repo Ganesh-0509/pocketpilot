@@ -1,6 +1,6 @@
 /**
  * Help & User Guide Content
- * Professional documentation for FinMate features
+ * Student documentation for PocketPilot features
  */
 
 export interface HelpSection {
@@ -119,11 +119,9 @@ export const helpSections: HelpSection[] = [
       },
       {
         heading: "Smart Category Selection",
-        description: "Categories are ordered based on your role for faster selection:",
+        description: "Categories are tuned for student workflows:",
         tips: [
           "Students see Education, Transport, Food first",
-          "Professionals see Transport, Food, Health first",
-          "Housewives see Groceries, Utilities, Health first",
           "Custom categories can be added for unique expenses",
         ],
       },
@@ -253,7 +251,7 @@ export const helpSections: HelpSection[] = [
         ],
         tips: [
           "Payment status resets at the start of each month",
-          "Set reminders outside FinMate for due dates",
+          "Set reminders outside PocketPilot for due dates",
         ],
       },
       {
@@ -275,7 +273,7 @@ export const helpSections: HelpSection[] = [
     content: [
       {
         heading: "Setting Financial Goals",
-        description: "Goals help you save with purpose. Whether it's a vacation, gadget, or down payment, FinMate tracks your progress.",
+        description: "Goals help you save with purpose. Whether it's a vacation, gadget, or down payment, PocketPilot tracks your progress.",
       },
       {
         heading: "Creating a Goal",
@@ -292,11 +290,9 @@ export const helpSections: HelpSection[] = [
       },
       {
         heading: "Goal Templates",
-        description: "Quick-start goals based on your role:",
+        description: "Quick-start goals for student life:",
         tips: [
           "Students: Laptop Fund, Certification Course, Study Abroad",
-          "Professionals: Home Down Payment, Car Fund, Skill Development",
-          "Housewives: Home Renovation, Children's Education, Gold Savings",
           "Templates pre-fill recommended amounts - customize as needed",
         ],
       },
@@ -389,7 +385,7 @@ export const helpSections: HelpSection[] = [
         tips: [
           "Conversations are not stored long-term",
           "AI accesses only your PocketPilot data (not external accounts)",
-          "Recommendations are suggestions, not professional financial advice",
+          "Recommendations are suggestions, not formal financial advice",
           "Always verify important financial decisions independently",
         ],
       },
@@ -411,7 +407,7 @@ export const helpSections: HelpSection[] = [
     content: [
       {
         heading: "Financial Reports",
-        description: "Export your data for offline analysis, tax filing, or record-keeping.",
+        description: "Export your data for offline analysis and record-keeping.",
       },
       {
         heading: "Export Options",
@@ -440,7 +436,7 @@ export const helpSections: HelpSection[] = [
       },
       {
         heading: "PDF Reports",
-        description: "Professional formatted reports:",
+        description: "Well-formatted reports:",
         steps: [
           "Click 'Export PDF' in the header",
           "Report generates with charts and summaries",
@@ -471,7 +467,7 @@ export const helpSections: HelpSection[] = [
           "Weekly: Quick review of daily expenses",
           "Monthly: Comprehensive analysis and adjustments",
           "Quarterly: Goal progress check and realignment",
-          "Yearly: Tax preparation and long-term planning",
+          "Yearly: long-term planning and progress review",
         ],
       },
     ],
@@ -483,7 +479,7 @@ export const helpSections: HelpSection[] = [
     content: [
       {
         heading: "Earn Rewards for Good Habits",
-        description: "FinMate gamifies financial discipline. Earn badges for milestones and build streaks for consistent expense tracking.",
+        description: "PocketPilot gamifies financial discipline. Earn badges for milestones and build streaks for consistent expense tracking.",
       },
       {
         heading: "Badge System",
@@ -495,7 +491,6 @@ export const helpSections: HelpSection[] = [
           "Goal Getter: Achieve your first financial goal",
           "Savings Superstar: Save ₹10,000 total",
           "Budget Boss: Stay under budget for 30 days",
-          "Investment Initiator: Add your first investment",
           "Emergency Ready: Build 3-month emergency fund",
         ],
       },
@@ -538,14 +533,14 @@ export const helpSections: HelpSection[] = [
     content: [
       {
         heading: "Profile Management",
-        description: "Customize your FinMate experience and secure your data.",
+        description: "Customize your PocketPilot experience and secure your data.",
       },
       {
         heading: "Updating Your Profile",
         description: "Keep your information current:",
         steps: [
           "Go to Settings page",
-          "Update your role if your situation changes",
+          "Update your profile when your student situation changes",
           "Adjust monthly income (raises, job changes)",
           "Add/remove/edit fixed expenses",
           "Click 'Save Changes' to apply updates",
@@ -571,7 +566,7 @@ export const helpSections: HelpSection[] = [
         description: "Protect your account:",
         tips: [
           "Use a strong, unique password",
-          "Enable two-factor authentication (in Firebase settings)",
+          "Enable two-factor authentication in your auth provider settings",
           "Log out when using shared devices",
           "Review account activity regularly",
         ],
@@ -615,9 +610,9 @@ export const helpSections: HelpSection[] = [
         heading: "General Questions",
         description: "",
         tips: [
-          "Q: Is FinMate free? A: Yes, FinMate is completely free to use.",
-          "Q: Do I need to connect my bank? A: No, FinMate is manual entry only for privacy.",
-          "Q: Can I use FinMate offline? A: No, internet required for AI and sync features.",
+          "Q: Is PocketPilot free? A: Yes, PocketPilot is completely free to use.",
+          "Q: Do I need to connect my bank? A: No, PocketPilot is manual entry only for privacy.",
+          "Q: Can I use PocketPilot offline? A: No, internet required for AI and sync features.",
           "Q: Is my data safe? A: Yes, encrypted and stored securely in Supabase.",
           "Q: Can multiple people use one account? A: No, create separate accounts for privacy.",
         ],
@@ -626,8 +621,8 @@ export const helpSections: HelpSection[] = [
         heading: "Budget & Expenses",
         description: "",
         tips: [
-          "Q: Why is my daily limit different? A: Based on your role and income after fixed expenses.",
-          "Q: Can I change budget percentages? A: Currently fixed by role, custom ratios coming soon.",
+          "Q: Why is my daily limit different? A: Based on your income, recurring costs, and upcoming liabilities.",
+          "Q: Can I change budget percentages? A: Currently fixed to the student model, custom ratios coming soon.",
           "Q: What if I forget to log expenses? A: Add them anytime - backdating is supported.",
           "Q: How are categories assigned? A: You select category when logging each expense.",
           "Q: Can I create custom categories? A: Currently limited to preset categories.",

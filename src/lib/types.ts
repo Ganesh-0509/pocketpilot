@@ -1,4 +1,5 @@
-export type UserType = 'student';
+export type UserRole = 'student';
+export type UserType = UserRole;
 
 export type LivingType = 'hostel' | 'day_scholar';
 
@@ -119,18 +120,23 @@ export interface Transaction {
   date: string; // ISO string for simplicity
 }
 
-export const expenseCategories = [
-  'Food & Dining',
-  'Groceries',
-  'Transport',
-  'Shopping',
-  'Entertainment',
-  'Utilities',
-  'Rent/EMI',
-  'Healthcare',
-  'Education',
-  'Other',
-];
+export const EXPENSE_CATEGORIES = {
+  FOOD: 'Food & Canteen',
+  TRANSPORT: 'Auto / Metro / Bus',
+  HOSTEL: 'Hostel & Room',
+  EDUCATION: 'Books & Stationery',
+  SUBSCRIPTIONS: 'Apps & Subscriptions',
+  HEALTH: 'Medical & Pharmacy',
+  CLOTHING: 'Clothing',
+  FEST: 'Fest & Events',
+  ENTERTAINMENT: 'Movies & Hangouts',
+  RECHARGE: 'Mobile Recharge',
+  FAMILY: 'Sent to Family',
+  OTHER: 'Other',
+} as const;
+
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[keyof typeof EXPENSE_CATEGORIES];
+export const EXPENSE_CATEGORY_VALUES: ExpenseCategory[] = Object.values(EXPENSE_CATEGORIES);
 
 // Represents a record of which month a payment was logged for a specific expense.
 // e.g., { "expense-id-123": ["2024-01", "2024-02"] }

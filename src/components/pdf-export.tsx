@@ -359,7 +359,7 @@ export const PdfExport = () => {
       for (let i = 1; i <= pageCount; i++) {
         (doc as any).setPage(i);
         doc.text(
-          "FinMate - Confidential",
+          "PocketPilot - Confidential",
           pageWidth / 2,
           doc.internal.pageSize.height - 10,
           { align: "center" }
@@ -367,7 +367,7 @@ export const PdfExport = () => {
       }
 
       // Save the PDF
-      const fileName = `finmate_report_${new Date().toISOString().slice(0, 7)}.pdf`;
+      const fileName = `PocketPilot_report_${new Date().toISOString().slice(0, 7)}.pdf`;
       doc.save(fileName);
 
       toast({

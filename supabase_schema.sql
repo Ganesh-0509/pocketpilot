@@ -1,83 +1,66 @@
--- 1. Profiles Table
+CREATE TYPE living_type AS ENUM ('hostel', 'day_scholar');
+CREATE TYPE input_method AS ENUM ('manual', 'voice', 'ocr');
+CREATE TYPE liability_category AS ENUM ('fees', 'exam', 'textbook', 'project', 'fest', 'other');
+CREATE TYPE burn_status AS ENUM ('safe', 'warning', 'critical');
+
 CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
-  user_type TEXT DEFAULT 'student',
-  name TEXT,
-  college_name TEXT,
-  living_type TEXT DEFAULT 'hostel',
-  monthly_income NUMERIC DEFAULT 0,
-  internship_income NUMERIC DEFAULT 0,
-  recurring_expenses JSONB DEFAULT '[]'::jsonb,
-  semester_fees JSONB DEFAULT '[]'::jsonb,
-  fixed_expenses JSONB DEFAULT '[]'::jsonb,
-  daily_spending_limit NUMERIC DEFAULT 0,
-  monthly_needs NUMERIC DEFAULT 0,
-  monthly_wants NUMERIC DEFAULT 0,
-  monthly_savings NUMERIC DEFAULT 0,
-  emergency_fund JSONB DEFAULT '{"target": 0, "current": 0, "history": []}'::jsonb,
-  gamification JSONB DEFAULT '{}'::jsonb,
-  total_daily_savings NUMERIC DEFAULT 0,
-  last_tds_reset_date TIMESTAMP WITH TIME ZONE,
-  reminder_time TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  id UUID REFERENCES auth.users PRIMARY KEY,
+  college_name TEXT NOT NULL,
+  living_type living_type NOT NULL,
+  monthly_pocket_money NUMERIC(10,2) NOT NULL,
+  internship_income NUMERIC(10,2) DEFAULT 0,
+  semester_start_date DATE NOT NULL,
+  semester_end_date DATE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Transactions Table
-CREATE TABLE transactions (
+CREATE TABLE expenses (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  amount NUMERIC NOT NULL,
-  date TIMESTAMP WITH TIME ZONE NOT NULL,
-  description TEXT NOT NULL,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
   category TEXT NOT NULL,
-  type TEXT DEFAULT 'expense'
+  description TEXT,
+  logged_at TIMESTAMPTZ DEFAULT NOW(),
+  input_method input_method DEFAULT 'manual'
 );
 
--- 3. Goals Table
-CREATE TABLE goals (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  target_amount NUMERIC NOT NULL,
-  current_amount NUMERIC DEFAULT 0,
-  timeline_months INTEGER,
-  start_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  monthly_contribution NUMERIC,
-  contributions JSONB DEFAULT '[]'::jsonb
-);
-
--- 4. Semester Liabilities Table
 CREATE TABLE semester_liabilities (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
-  amount NUMERIC NOT NULL,
-  due_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  category TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+  due_date DATE NOT NULL,
+  is_paid BOOLEAN DEFAULT FALSE,
+  category liability_category DEFAULT 'other',
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Logged Payments Table
-CREATE TABLE logged_payments (
+CREATE TABLE streaks (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  expense_id TEXT NOT NULL,
-  month TEXT NOT NULL, -- e.g., "YYYY-MM"
-  paid_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, expense_id, month)
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,
+  current_streak INT DEFAULT 0,
+  best_streak INT DEFAULT 0,
+  last_active_date DATE
 );
 
--- Turn on Row Level Security (RLS)
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE semester_liabilities ENABLE ROW LEVEL SECURITY;
-ALTER TABLE logged_payments ENABLE ROW LEVEL SECURITY;
+CREATE TABLE badges (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  badge_key TEXT NOT NULL,
+  earned_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, badge_key)
+);
 
--- Create Policies so users can only view/edit their own data
-CREATE POLICY "Users can manage their own profile" ON profiles FOR ALL USING (auth.uid() = id);
-CREATE POLICY "Users can view their own transactions" ON transactions FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users can manage their own goals" ON goals FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users can manage their own semester liabilities" ON semester_liabilities FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users can manage their own payments" ON logged_payments FOR ALL USING (auth.uid() = user_id);
+-- Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE semester_liabilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE streaks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users own their profile" ON profiles FOR ALL USING (auth.uid() = id);
+CREATE POLICY "Users own their expenses" ON expenses FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users own their liabilities" ON semester_liabilities FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users own their streak" ON streaks FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users own their badges" ON badges FOR ALL USING (auth.uid() = user_id);

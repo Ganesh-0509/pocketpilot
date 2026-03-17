@@ -84,7 +84,7 @@ function FundActionDialog({ type, children }: { type: 'deposit' | 'withdraw', ch
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full capitalize">{type}</Button>
+            <Button type="submit" disabled={form.formState.isSubmitting} className="w-full capitalize">{type}</Button>
           </form>
         </Form>
       </DialogContent>

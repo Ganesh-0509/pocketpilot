@@ -7,13 +7,14 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supabase } from '@/lib/supabase';
-import { SupabaseService } from '@/lib/supabase-service';
+import { createClientComponentClient } from '@/lib/supabase';
+import { createProfile } from '@/lib/db/profile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 const signupSchema = z.object({
@@ -28,16 +29,37 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const supabase = createClientComponentClient();
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: { name: '', email: '', password: '' },
   });
 
+  const mapAuthError = (error: any): string => {
+    const message = error?.message || 'An unexpected error occurred';
+    
+    // Map common Supabase auth errors to user-friendly messages
+    if (message.includes('already registered')) {
+      return 'An account with this email already exists. Try signing in instead.';
+    }
+    if (message.includes('password')) {
+      return 'Password must be at least 6 characters.';
+    }
+    if (message.includes('email')) {
+      return 'Please enter a valid email address.';
+    }
+    if (message.includes('too many requests')) {
+      return 'Too many signup attempts. Please try again later.';
+    }
+    
+    return message;
+  };
+
   const onSubmit = async (data: SignupValues) => {
     setIsLoading(true);
     try {
       // Create the user account in Supabase
-      const { data: authData, error } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -47,60 +69,63 @@ export default function SignupPage() {
         }
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
 
-      // Create initial profile in Supabase
-      if (authData.user) {
-        await SupabaseService.saveProfile(authData.user.id, {
-          name: data.name,
-          userType: '' as any,
-          collegeName: '',
-          livingType: 'hostel',
-          monthlyIncome: 0,
-          internshipIncome: 0,
-          recurringExpenses: [],
-          semesterFees: [],
-          monthlyNeeds: 0,
-          monthlyWants: 0,
-          monthlySavings: 0,
-          dailySpendingLimit: 0,
-          fixedExpenses: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          emergencyFund: {
-            current: 0,
-            target: 0,
-            history: []
-          }
-        });
+      if (!authData.user) {
+        throw new Error('Signup succeeded but no user found');
       }
+
+      // Create initial profile using db layer
+      try {
+        await createProfile(authData.user.id, {
+          college_name: '',
+          living_type: 'hostel',
+          monthly_pocket_money: 0,
+          internship_income: 0,
+          semester_start_date: new Date().toISOString(),
+          semester_end_date: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      } catch (profileError: any) {
+        console.error('Profile creation error:', profileError);
+        // Don't throw - profile creation is secondary to auth
+        // User can complete onboarding to set up profile details
+      }
+
+      toast({
+        title: 'Account Created Successfully!',
+        description: 'Redirecting to onboarding...',
+      });
 
       router.push('/onboarding');
     } catch (error: any) {
+      const friendlyMessage = mapAuthError(error);
       toast({
         variant: 'destructive',
         title: 'Signup Failed',
-        description: error.message || 'An unexpected error occurred.',
+        description: friendlyMessage,
       });
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       if (error) throw error;
     } catch (error: any) {
+      const friendlyMessage = mapAuthError(error);
       toast({
         variant: 'destructive',
-        title: 'Google Login Failed',
-        description: error.message || 'An unexpected error occurred.',
+        title: 'Google Signup Failed',
+        description: friendlyMessage,
       });
+      setIsLoading(false);
     }
   };
 
@@ -109,7 +134,7 @@ export default function SignupPage() {
       <CardHeader className="text-center">
         <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center mx-auto">
           <Image
-            src="/FINMATE.png"
+            src="/PocketPilot.png"
             alt="PocketPilot"
             width={36}
             height={36}
@@ -118,7 +143,7 @@ export default function SignupPage() {
           />
         </div>
         <CardTitle className="mt-4">Create an Account</CardTitle>
-        <CardDescription>Get started with FinMate for free</CardDescription>
+        <CardDescription>Get started with PocketPilot for free</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -169,7 +194,14 @@ export default function SignupPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
           </form>
 

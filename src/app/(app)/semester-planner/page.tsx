@@ -1,197 +1,122 @@
-"use client";
+import { cookies } from 'next/headers';
+import { parseISO } from 'date-fns';
+import { createServerComponentClient } from '@/lib/supabase';
+import { SupabaseService } from '@/lib/supabase-service';
+import { computeDailySummary } from '@/lib/dailyEngine';
+import type { StudentProfile, Expense, SemesterLiability } from '@/lib/dailyEngine';
+import type { Transaction } from '@/lib/types';
+import { redirect } from 'next/navigation';
 
-import { format } from 'date-fns';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { BookOpen, CalendarClock, Landmark, Plus, Trash2 } from 'lucide-react';
-import { useApp } from '@/hooks/use-app';
-import { semesterLiabilityCategories } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TopImpactCard } from './_components/top-impact-card';
+import { AddLiabilityForm } from './_components/add-liability-form';
+import { LiabilityList } from './_components/liability-list';
 
-const plannerSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  amount: z.coerce.number().min(1, 'Amount must be positive'),
-  dueDate: z.string().min(1, 'Due date is required'),
-  category: z.enum(semesterLiabilityCategories),
-});
+async function getSemesterPlannerData() {
+  const cookieStore = await cookies();
+  const supabase = createServerComponentClient(cookieStore);
 
-type PlannerValues = z.infer<typeof plannerSchema>;
+  // Get authenticated user
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-export default function SemesterPlannerPage() {
-  const { semesterLiabilities, addSemesterLiability, deleteSemesterLiability, studentAnalytics } = useApp();
-  const form = useForm<PlannerValues>({
-    resolver: zodResolver(plannerSchema),
-    defaultValues: {
-      title: '',
-      amount: 0,
-      dueDate: '',
-      category: 'Semester Fees',
-    },
-  });
-
-  async function onSubmit(values: PlannerValues) {
-    await addSemesterLiability({
-      ...values,
-      dueDate: new Date(values.dueDate).toISOString(),
-    });
-
-    form.reset({
-      title: '',
-      amount: 0,
-      dueDate: '',
-      category: 'Semester Fees',
-    });
+  if (authError || !user) {
+    redirect('/login');
   }
 
+  try {
+    // Fetch profile, transactions, and liabilities in parallel
+    const [profile, transactions, liabilities] = await Promise.all([
+      SupabaseService.getProfile(user.id),
+      SupabaseService.getTransactions(user.id),
+      SupabaseService.getSemesterLiabilities(user.id),
+    ]);
+
+    if (!profile) {
+      redirect('/onboarding');
+    }
+
+    return { profile, transactions, liabilities, userId: user.id };
+  } catch (error) {
+    console.error('Error fetching semester planner data:', error);
+    throw error;
+  }
+}
+
+function convertToExpenses(transactions: Transaction[]): Expense[] {
+  return transactions.map((t) => ({
+    amount: t.amount,
+    loggedAt: typeof t.date === 'string' ? parseISO(t.date) : t.date,
+  }));
+}
+
+function convertToStudentProfile(profile: any): StudentProfile {
+  const semStart = profile.semesterStartDate
+    ? typeof profile.semesterStartDate === 'string'
+      ? parseISO(profile.semesterStartDate)
+      : profile.semesterStartDate
+    : new Date();
+
+  const semEnd = profile.semesterEndDate
+    ? typeof profile.semesterEndDate === 'string'
+      ? parseISO(profile.semesterEndDate)
+      : profile.semesterEndDate
+    : new Date();
+
+  return {
+    monthlyPocketMoney: profile.monthlyIncome || 0,
+    internshipIncome: profile.internshipIncome || 0,
+    semesterStartDate: semStart,
+    semesterEndDate: semEnd,
+  };
+}
+
+function convertToSemesterLiabilities(liabilities: any[]): Array<SemesterLiability & { title?: string; category?: string }> {
+  return liabilities.map((l) => ({
+    id: l.id,
+    amount: l.amount,
+    dueDate: typeof l.dueDate === 'string' ? parseISO(l.dueDate) : l.dueDate,
+    isPaid: l.isPaid || false,
+    title: l.title,
+    category: l.category,
+  }));
+}
+
+export default async function SemesterPlannerPage() {
+  const { profile, transactions, liabilities } = await getSemesterPlannerData();
+
+  // Convert to types expected by dailyEngine
+  const expenses = convertToExpenses(transactions);
+  const studentProfile = convertToStudentProfile(profile);
+  const semesterLiabilities = convertToSemesterLiabilities(liabilities);
+
+  // Compute daily summary
+  const dailySummary = computeDailySummary(studentProfile, semesterLiabilities, expenses);
+
+  // Calculate without liabilities for comparison
+  const summaryWithoutLiabilities = computeDailySummary(studentProfile, [], expenses);
+
+  // Sort liabilities by due date for initial display
+  const sortedLiabilities = [...semesterLiabilities].sort(
+    (a, b) => a.dueDate.getTime() - b.dueDate.getTime()
+  );
+
   return (
-    <div className="space-y-8">
-      <div className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarClock className="h-5 w-5 text-primary" />
-              Semester Planner
-            </CardTitle>
-            <CardDescription>Add academic expenses that should reduce your daily spending room before they hit.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Expense title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Semester 4 tuition" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount (₹)</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" step="0.01" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Due date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {semesterLiabilityCategories.map((category) => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Semester Cost
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+    <main className="space-y-6 pb-20 pt-4">
+      {/* Top Impact Card */}
+      <TopImpactCard
+        totalUpcomingLiabilities={dailySummary.upcomingLiabilities}
+        dailyLimitWithout={summaryWithoutLiabilities.safeDailyLimit}
+        dailyLimitWith={dailySummary.safeDailyLimit}
+        impact={dailySummary.upcomingLiabilities}
+      />
 
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Landmark className="h-5 w-5 text-primary" />
-              Reserve Snapshot
-            </CardTitle>
-            <CardDescription>How the planner is affecting your current month.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg border bg-muted/20 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reserved in next 30 days</p>
-              <p className="mt-1 text-3xl font-bold">₹{(studentAnalytics?.reservedForUpcomingLiabilities || 0).toFixed(0)}</p>
-            </div>
-            <div className="rounded-lg border bg-muted/20 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Current daily limit</p>
-              <p className="mt-1 text-3xl font-bold">₹{(studentAnalytics?.currentDailyLimit || 0).toFixed(0)}</p>
-            </div>
-            <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
-              {studentAnalytics?.survivalMode
-                ? 'Survival Mode is active because the adjusted daily limit is below the minimum threshold.'
-                : 'Your planner reserve has been folded into the daily safe-to-spend number.'}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Add Liability Form */}
+      <AddLiabilityForm />
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            Planned Academic Costs
-          </CardTitle>
-          <CardDescription>Stored under your user record as semester liabilities.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {semesterLiabilities.length > 0 ? semesterLiabilities.map((liability) => (
-            <div key={liability.id} className="flex flex-col gap-3 rounded-xl border p-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="font-semibold">{liability.title}</p>
-                <p className="text-sm text-muted-foreground">{liability.category} • Due {format(new Date(liability.dueDate), 'MMM d, yyyy')}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Amount</p>
-                  <p className="text-lg font-bold">₹{liability.amount.toFixed(0)}</p>
-                </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => deleteSemesterLiability(liability.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )) : (
-            <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-              No semester costs added yet. Start with tuition, books, exam fees, projects, or fest budgets.
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      {/* Liability List */}
+      <LiabilityList initialLiabilities={sortedLiabilities} />
+    </main>
   );
 }

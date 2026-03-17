@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { EXPENSE_CATEGORY_VALUES, EXPENSE_CATEGORIES, type ExpenseCategory } from '@/lib/types';
 
 type ParseRequest = {
   text: string;
@@ -28,21 +29,10 @@ export async function POST(request: Request) {
     }
 
     // --- Categories & Instructions ---
-    const allowedCategories = [
-      'Food & Dining',
-      'Groceries',
-      'Transport',
-      'Shopping',
-      'Entertainment',
-      'Utilities',
-      'Rent/EMI',
-      'Healthcare',
-      'Education',
-      'Other',
-    ];
+    const allowedCategories = EXPENSE_CATEGORY_VALUES;
 
     const instructions = {
-      onboarding: `Produce a JSON object with keys: role (Student|Professional|Housewife), income (number), fixedExpenses (array of {name,category,amount,timelineMonths,startDate?}). Parse dates as ISO strings. Only output JSON, no explanation. If a field is missing, omit it.`,
+      onboarding: `Produce a JSON object with keys: role (Student), income (number), fixedExpenses (array of {name,category,amount,timelineMonths,startDate?}). Parse dates as ISO strings. Only output JSON, no explanation. If a field is missing, omit it.`,
       expense: `You are a financial parsing assistant. Extract expense details from the following receipt/text.
         Produce a JSON object with these exact keys:
         - description: A concise summary of the transaction (2-5 words).
@@ -239,19 +229,21 @@ export async function POST(request: Request) {
     }
 
     // --- Normalize category ---
-    const normalizeCategory = (rawCat: string | undefined) => {
-      if (!rawCat) return 'Other';
+    const normalizeCategory = (rawCat: string | undefined): ExpenseCategory => {
+      if (!rawCat) return EXPENSE_CATEGORIES.OTHER;
       const lower = rawCat.toLowerCase();
-      if (/food|restaurant|dine|cafe|meal/.test(lower)) return 'Food & Dining';
-      if (/grocery|supermarket|vegetable|fruit|mart/.test(lower)) return 'Groceries';
-      if (/taxi|uber|ola|rapido|bus|metro|train|transport|ride/.test(lower)) return 'Transport';
-      if (/shopping|mall|clothes|apparel|purchase/.test(lower)) return 'Shopping';
-      if (/movie|netflix|spotify|entertainment|show/.test(lower)) return 'Entertainment';
-      if (/electric|water|bill|utility|internet|wifi|gas/.test(lower)) return 'Utilities';
-      if (/rent|emi|loan|mortgage/.test(lower)) return 'Rent/EMI';
-      if (/doctor|hospital|medicine|clinic|health|pharmacy/.test(lower)) return 'Healthcare';
-      if (/tuition|course|study|education|school|college/.test(lower)) return 'Education';
-      return 'Other';
+      if (/food|restaurant|dine|cafe|meal|canteen/.test(lower)) return EXPENSE_CATEGORIES.FOOD;
+      if (/taxi|uber|ola|rapido|bus|metro|train|transport|ride/.test(lower)) return EXPENSE_CATEGORIES.TRANSPORT;
+      if (/hostel|room|rent|pg|accommodation/.test(lower)) return EXPENSE_CATEGORIES.HOSTEL;
+      if (/tuition|course|study|education|school|college|book|stationery/.test(lower)) return EXPENSE_CATEGORIES.EDUCATION;
+      if (/netflix|spotify|subscription|app|software|saas/.test(lower)) return EXPENSE_CATEGORIES.SUBSCRIPTIONS;
+      if (/doctor|hospital|medicine|clinic|health|pharmacy/.test(lower)) return EXPENSE_CATEGORIES.HEALTH;
+      if (/clothes|clothing|apparel|fashion/.test(lower)) return EXPENSE_CATEGORIES.CLOTHING;
+      if (/fest|event|college event|tickets/.test(lower)) return EXPENSE_CATEGORIES.FEST;
+      if (/movie|cinema|entertainment|hangout|outing|games/.test(lower)) return EXPENSE_CATEGORIES.ENTERTAINMENT;
+      if (/recharge|mobile|data pack|prepaid|postpaid/.test(lower)) return EXPENSE_CATEGORIES.RECHARGE;
+      if (/family|parents|home transfer|sent home/.test(lower)) return EXPENSE_CATEGORIES.FAMILY;
+      return EXPENSE_CATEGORIES.OTHER;
     };
 
     parsed.category = normalizeCategory(parsed.category);

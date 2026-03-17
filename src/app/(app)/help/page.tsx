@@ -32,7 +32,7 @@ export default function HelpPage() {
           <h1 className="text-3xl font-bold tracking-tight">Help & User Guide</h1>
         </div>
         <p className="text-muted-foreground text-lg">
-          Learn how to make the most of FinMate's features. Find answers, tips, and step-by-step instructions.
+          Learn how to make the most of PocketPilot's features. Find answers, tips, and step-by-step instructions.
         </p>
       </div>
 

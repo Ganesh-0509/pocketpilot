@@ -15,7 +15,7 @@ import { Trash, CalendarIcon, ShieldAlert } from 'lucide-react';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
-import { expenseCategories } from '@/lib/types';
+import { EXPENSE_CATEGORY_VALUES } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -204,7 +204,7 @@ export default function SettingsPage() {
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent>
-                                                                {expenseCategories.map(cat => (
+                                                                {EXPENSE_CATEGORY_VALUES.map(cat => (
                                                                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                                                 ))}
                                                             </SelectContent>
@@ -230,7 +230,7 @@ export default function SettingsPage() {
                                 </Button>
                             </div>
 
-                            <Button type="submit" className="w-full" size="lg">Save Changes</Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting} className="w-full" size="lg">Save Changes</Button>
                         </form>
                     </Form>
                 </CardContent>

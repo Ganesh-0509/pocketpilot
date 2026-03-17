@@ -88,8 +88,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                 <img
-                  src="/FINMATE.png"
-                  alt="FinMate"
+                  src="/PocketPilot.png"
+                  alt="PocketPilot"
                   width={28}
                   height={28}
                   className="object-contain"

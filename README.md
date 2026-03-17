@@ -1,313 +1,266 @@
-# 📱 PocketPilot – Student Financial Survival Platform
-
-PocketPilot is a **student-focused financial management platform** designed specifically for college students to master budgeting, track pocket money, and build sustainable financial habits. Unlike generic finance apps, PocketPilot is optimized for the unique challenges of student life - from managing mess fees and hostel expenses to saving for semester fees and personal goals.
-
----
-
-## 🚀 Key Highlights
-
-* Role‑based budgeting & personalization
-* AI‑powered insights, chatbot, and alerts
-* Multiple expense input methods (Manual, Voice, OCR)
-* Gamification with streaks & badges
-* Cross‑platform (Web + Android)
-* Professional exports (PDF, CSV, JSON)
-* Privacy‑first architecture with Firebase Security Rules
-
----
-##  FINMATE
-<img width="1659" height="941" alt="Screenshot 2026-01-19 at 14 55 03" src="https://github.com/user-attachments/assets/344b2209-a7f7-4e86-a6dc-052819747a5f" />
-
-## 🔐 1. Authentication & User Management
-<img width="1652" height="921" alt="Screenshot 2026-01-19 at 14 55 26" src="https://github.com/user-attachments/assets/ce8162a0-b7fc-4ac6-94f2-3ddcff99f764" />
-
-
-
-### Firebase Authentication
-
-* Secure signup, login, and session handling
-* Protects sensitive financial data
-* Enables multi‑device synchronization
-
-### Cloud Data Persistence (Firestore)
-
-* Real‑time storage for all user data
-* Automatic sync across devices
-* Offline‑ready architecture
-
----
-
-## 🎯 2. Onboarding System
-<img width="1271" height="913" alt="Screenshot 2026-01-19 at 15 00 16" src="https://github.com/user-attachments/assets/e14a2bfe-1990-4ac4-8ed1-690a741c44df" />
-
-
-
-### Role Selection
-
-* Roles: Student, Professional, Housewife
-* Drives personalized budgets, AI advice, and goal templates
-
-### Income & Fixed Expenses Setup
-
-* Monthly income input
-* Add rent, EMIs, subscriptions, and other recurring costs
-
-### Role‑Based Budget Calculation
-
-* Student: 60% Needs / 30% Wants / 10% Savings
-* Professional: 50% Needs / 30% Wants / 20% Savings
-* Housewife: 55% Needs / 25% Wants / 20% Savings
-
-### Daily Spending Limit
-
-* Auto‑calculated safe daily limit
-* Prevents overspending through real‑time feedback
-
----
-
-## 📊 3. Dashboard (Financial Overview)
-<img width="1896" height="1088" alt="image" src="https://github.com/user-attachments/assets/781d6b77-7707-4673-88c0-ca9c9e062b74" />
-
-
-
-### Key Components
-
-* Monthly Income
-* Today’s Spending (with progress bar)
-* Overall Spending
-* Goals Progress
-* Emergency Fund Status
-
-### Smart Visualizations
-
-* 7‑day spending bar chart
-* Active goals progress bars
-* AI‑powered spending alerts
-
----
-
-## 📝 4. Daily Check‑In (Expense Logging)
-<img width="1899" height="1070" alt="image" src="https://github.com/user-attachments/assets/9793bf47-df3a-4d85-89b2-61212a46815d" />
-
-
-
-### Expense Input Methods
-
-* Manual entry
-* Voice input (Speech‑to‑Text)
-* OCR receipt scanning
-
-### Smart Assistance
-
-* AI auto‑categorization
-* Role‑based category ordering
-* Real‑time daily limit progress bar
-
----
-
-## 📒 5. Expenses Analysis
-
-<img width="1900" height="1065" alt="image" src="https://github.com/user-attachments/assets/3ddd1a3b-c77c-4ad0-8512-ab0841deaf88" />
-
-
-### Features
-
-* Weekly / Monthly / All‑time filters
-* Category‑wise bar charts
-* Sortable transaction table
-* AI‑generated cost‑cutting recommendations
-
----
-
-## 📅 6. Fixed Expenses Management
-<img width="1897" height="1090" alt="image" src="https://github.com/user-attachments/assets/860402ab-5bbc-4c73-bd1c-15169ce05070" />
-
-
-
-### Capabilities
-
-* Add / Edit recurring expenses
-* EMI & loan timeline tracking
-* Auto‑expiry handling
-* Monthly payment checklist
-* Category distribution pie chart
-
----
-
-## 🎯 7. Goals Management
-
-<img width="1897" height="1081" alt="image" src="https://github.com/user-attachments/assets/ce28c137-0562-4ee3-b631-ce2507ab1f1e" />
-
-
-### Goal Features
-
-* Create and manage financial goals
-* Role‑based goal templates
-* Monthly contribution tracking
-* Progress visualization
-* Timeline forecasting ("Reach in X months")
-
----
-
-## 🛡️ 8. Emergency Fund
-
-<img width="1910" height="1092" alt="image" src="https://github.com/user-attachments/assets/8444a97a-20cb-43ad-b28d-8bc997563d85" />
-
-
-* Dedicated emergency savings pool
-* Target setting (e.g., 6 months expenses)
-* Deposit & withdrawal history
-* Progress monitoring
-
----
-
-## 🤖 9. AI & Automation
-<img width="249" height="350" alt="image" src="https://github.com/user-attachments/assets/4e2032da-c159-4bce-a9b1-a813262708f9" />
-
-### AI Capabilities
-
-* Conversational finance chatbot
-* Role‑aware advice
-* Proactive spending alerts
-* Expense adjustment recommendations
-* Spending forecast predictions
-
----
-
-## 🎮 10. Gamification System
-
-<img width="1897" height="1098" alt="image" src="https://github.com/user-attachments/assets/7246dc94-d1cc-49d0-8694-ee63776b5d6b" />
-
-
-### Streak Counter
-
-* Tracks consecutive days under daily limit
-* Instantly resets on overspending
-
-### Badges & Achievements
-
-* 30+ badges across Achievements, Milestones, Challenges & Seasonal
-* Auto‑awarded based on user behavior
-* Celebratory notifications
-
-### Badges Page
-
-* Apple Fitness‑inspired UI
-* Category tabs & progress tracking
-* Current vs best streak display
-
----
-
-## 📊 11. Dashboard Enhancements
-<img width="1887" height="1089" alt="image" src="https://github.com/user-attachments/assets/cdada193-2b38-47ec-b5c1-f73f8e940a67" />
-
-
-
-* Recent Achievements card
-* Smart Daily Briefing 2.0
-* Explainable AI ("Why?" section)
-* Budget run‑out date prediction
-
----
-
-## 💹 12. Investments & Wealth Management
-<img width="1587" height="855" alt="image" src="https://github.com/user-attachments/assets/851399ef-1a9f-4e64-8b7c-3578c354cef8" />
-
-
-
-### Portfolio Tracking
-
-* Track investments across **Stocks, Mutual Funds, and Crypto**
-* Centralized portfolio dashboard with real-time valuation
-* Asset-wise split (Equity / Debt / Crypto)
-
-### Performance Analytics
-
-* Total invested vs current value
-* Absolute return & percentage return
-* Individual asset performance trends
-
-### SIP Planner & Tracker
-
-* Create and manage **Systematic Investment Plans (SIPs)**
-* Monthly SIP reminders and contribution tracking
-* Visual progress toward long-term wealth goals
-
-### AI-Powered Investment Insights
-
-* AI suggests investment opportunities based on:
-
-  * Savings consistency
-  * Risk appetite inferred from spending behavior
-  * Available surplus after expenses & goals
-
-### Tax-Saving Insights (India-Focused)
-
-* Awareness for **80C / 80D deductions**
-* Smart suggestions to optimize tax-saving investments
-* Helps users align investments with tax planning
-
----
-
-## 📄 13. Export & Reporting
-<img width="1481" height="64" alt="Screenshot 2026-01-19 at 14 56 08" src="https://github.com/user-attachments/assets/53b0f865-81fa-4845-909f-28482031bbee" />
-
-
-
-* PDF financial reports
-* CSV exports for Excel & tax use
-* JSON exports for integrations
-
----
-
-## 📱 13. UI / UX, Mobile & Cross‑Platform 
-
-
-<img width="374" height="671" alt="Screenshot 2026-01-19 at 15 10 55" src="https://github.com/user-attachments/assets/99973220-f5f0-47f5-a51e-46105d2cb216" />
-
-* Capacitor‑based Android app
-* Safe‑area handling
-* Fully responsive design
-
-
-* Dark mode by default
-* shadcn/ui components
-* Recharts visualizations
-* Toast notifications
-
-  
-
-
-
-## 🔒 15. Security & Data Integrity
-
-
-
-* Firebase Security Rules
-* Type‑safe TypeScript
-* Zod‑based form validation
-
-
-## 🚀 16. Performance & Tech Stack
-
-
-
-* Next.js App Router
-* Genkit AI Flows
-* Firebase Hosting & Firestore
-
----
-
-## 🎯 Key Differentiators
-
-* Role‑based personalization (not generic budgeting)
-* AI embedded throughout the app
-* Gamification‑driven financial discipline
-* Multiple input methods
-* Privacy‑first design
-
----
-
-## 📌 Conclusion
-
-FinMate transforms personal finance from a tedious task into an **intelligent, engaging, and personalized experience**. By combining AI, role‑based logic, and gamification, it empowers users to build sustainable financial habits and long‑term security.
+# PocketPilot
+
+PocketPilot is a student-only AI financial survival app built to answer one question every day:
+
+How much can I safely spend today without going broke tomorrow?
+
+Core formula used across the app:
+
+Daily Safe-to-Spend = (Remaining Budget - Upcoming 30-day Liabilities) / Days Remaining
+
+## What PocketPilot Does
+
+- Calculates a real-time daily safe-to-spend number
+- Tracks student expenses with mobile-first check-ins
+- Reserves upcoming semester liabilities before discretionary spending
+- Generates AI-driven daily briefings and spending recommendations
+- Supports goals, emergency fund tracking, and gamified streaks/badges
+- Exports reports for personal review
+
+## Tech Stack
+
+- **Frontend**: Next.js 14 App Router + TypeScript + Tailwind CSS + shadcn/ui
+- **Backend**: Next.js API Routes
+- **Database**: Supabase (PostgreSQL + Auth + RLS)
+- **AI**: Google Genkit
+- **Charts**: Recharts
+- **Mobile**: Capacitor Android
+- **Validation**: Zod + React Hook Form
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- A Supabase account (free tier works)
+- Google Cloud API credentials (for Genkit AI)
+- Android SDK (if building for Android)
+
+### Local Development Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/pocketpilot.git
+   cd pocketpilot
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Then edit `.env.local` with your credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   GOOGLE_GENAI_API_KEY=your-google-genai-key
+   ```
+
+4. **Set up Supabase database:**
+   - Go to your Supabase project dashboard
+   - Run the SQL setup from the Supabase SQL Editor
+   - Enable Row Level Security (RLS) on all tables
+   - Create the necessary auth schema
+
+5. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   
+   Open [http://localhost:3000](http://localhost:3000) in your browser
+
+### Available Scripts
+
+```bash
+# Development server with hot reload
+npm run dev
+
+# Type checking
+npm run typecheck
+
+# Production build
+npm run build
+
+# Start production server
+npm run start
+
+# ESLint linting
+npm run lint
+```
+
+## Environment Variables Reference
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous key (safe for client) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (secret, server-only) |
+| `GOOGLE_GENAI_API_KEY` | Yes | Google Genkit API key for AI features |
+| `NEXT_PUBLIC_APP_URL` | No | App URL for redirects (default: http://localhost:3000) |
+| `NODE_ENV` | No | Environment (development/production) |
+
+### Getting Credentials
+
+**Supabase:**
+1. Create a free account at https://supabase.com
+2. Create a new project
+3. Go to Settings > API to find your URL and keys
+4. Copy the `NEXT_PUBLIC_SUPABASE_ANON_KEY` (safe for client)
+5. Copy the `SUPABASE_SERVICE_ROLE_KEY` (keep secret!)
+
+**Google Genkit:**
+1. Enable Google AI at https://ai.google.dev/
+2. Create an API key
+3. Set it as `GOOGLE_GENAI_API_KEY`
+
+## Building for Android with Capacitor
+
+### Prerequisites
+- Android SDK (API level 21+)
+- Java Development Kit (JDK) 11+
+- Android Studio (recommended)
+
+### Build Steps
+
+1. **Prepare web build:**
+   ```bash
+   npm run build
+   ```
+
+2. **Sync Capacitor:**
+   ```bash
+   npx cap sync android
+   ```
+
+3. **Open in Android Studio:**
+   ```bash
+   npx cap open android
+   ```
+
+4. **In Android Studio:**
+   - Select a device or create an emulator
+   - Click "Run" (or press Shift + F10)
+
+5. **Configure signing for Play Store:**
+   - Create a signing key: `keytool -genkey -v -keystore release.jks ...`
+   - Update build.gradle with signing config
+   - Build release APK
+
+### Capacitor Configuration
+
+Key settings in `capacitor.config.ts`:
+- App ID: `com.pocketpilot.app`
+- Status Bar: Dark mode, navy background
+- Plugins: StatusBar, PullToRefresh, Haptics, Keyboard, SafeArea
+
+## Project Structure
+
+```
+/src
+  /app
+    /api              # API routes
+    /(auth)           # Authentication pages
+    /(app)            # Protected app pages
+  /components         # React components
+  /context            # Context providers
+  /hooks              # Custom React hooks
+  /lib                # Utilities and services
+  /types              # TypeScript types
+```
+
+## Production Quality Features
+
+✅ **TypeScript strict mode** - Full type safety
+✅ **Zod validation** - Runtime type validation on all forms
+✅ **React Query** - Server state management with caching
+✅ **Loading states** - UI skeletons on every page
+✅ **Error boundaries** - Graceful error handling
+✅ **Database RLS** - Row-level security for multi-tenant safety
+✅ **Rate limiting** - AI coaching call limits
+✅ **Input sanitization** - XSS/injection prevention
+✅ **Mobile optimized** - Capacitor + safe areas + 44×44px touch targets
+✅ **Dark mode** - Navy theme + light mode option
+
+## Performance Optimizations
+
+- Code splitting with dynamic imports
+- Image optimization with Next.js Image
+- Server-side rendering for SEO
+- Database query optimization (no SELECT *)
+- Memoized calculations
+- Debounced API calls
+
+## Security
+
+- Supabase authentication with RLS
+- OAuth support (Google, GitHub)
+- Environment variable validation
+- Input sanitization and validation
+- HTTPS enforcement in production
+- Service role key kept server-side only
+
+## API Health Check
+
+Monitor app health:
+```bash
+curl http://localhost:3000/api/health
+```
+
+Response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-03-17T10:30:00Z",
+  "supabase": "connected",
+  "version": "1.0.0",
+  "environment": "development"
+}
+```
+
+## Troubleshooting
+
+### Port 3000 already in use
+```bash
+npm run dev -- -p 3001
+```
+
+### Supabase connection errors
+- Check `.env.local` has correct credentials
+- Verify Supabase project is active
+- Check network connectivity
+- Test: `curl $NEXT_PUBLIC_SUPABASE_URL`
+
+### Android build failed
+- Update Android SDK: `sdkmanager --update`
+- Clean build: `./gradlew clean`
+- Check Java version: `java -version` (should be 11+)
+
+### TypeScript errors
+```bash
+npm run typecheck
+```
+
+## Contributing
+
+Contributions are welcome! Please:
+1. Create a feature branch
+2. Make your changes
+3. Run tests and type checking
+4. Submit a pull request
+
+## License
+
+MIT License - see LICENSE.md for details
+
+## Support
+
+- 📧 Email: support@pocketpilot.app
+- 🐛 Bug reports: GitHub Issues
+- 💬 Discussions: GitHub Discussions
+- 📖 Documentation: /docs folder

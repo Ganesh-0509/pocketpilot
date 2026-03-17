@@ -4,6 +4,13 @@
 
 @layer base {
   :root {
+    /* Safe area insets for mobile notch/gesture navigation */
+    --safe-area-inset-top: env(safe-area-inset-top, 0);
+    --safe-area-inset-right: env(safe-area-inset-right, 0);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+    --safe-area-inset-left: env(safe-area-inset-left, 0);
+    
+    /* Color variables */
     --background: 228 67% 97%;
     --foreground: 230 25% 25%;
     --card: 228 67% 100%;
@@ -57,6 +64,33 @@
     --chart-4: 280 80% 65%;
     --chart-5: 0 75% 60%;
   }
+  
+  .light {
+    --background: 228 67% 97%;
+    --foreground: 230 25% 25%;
+    --card: 228 67% 100%;
+    --card-foreground: 230 25% 25%;
+    --popover: 228 67% 100%;
+    --popover-foreground: 230 25% 25%;
+    --primary: 340 100% 63%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 257 100% 65%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 228 30% 95%;
+    --muted-foreground: 230 10% 45%;
+    --accent: 187 100% 50%;
+    --accent-foreground: 0 0% 15%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 257 100% 65% / 0.5;
+    --input: 230 25% 15%;
+    --ring: 187 100% 50%;
+    --chart-1: 340 100% 63%;
+    --chart-2: 257 100% 65%;
+    --chart-3: 187 100% 50%;
+    --chart-4: 14.5 80.4% 50.6%;
+    --chart-5: 172 70% 40%;
+  }
 }
  
 @layer base {
@@ -65,6 +99,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Responsive typography for mobile-first approach */
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
   }
 }
 /* ===== 3D / Glass utilities for landing page ===== */
@@ -99,6 +141,45 @@
   }
   .safe-pb {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-pl {
+    padding-left: env(safe-area-inset-left);
+  }
+  .safe-pr {
+    padding-right: env(safe-area-inset-right);
+  }
+  .safe-p {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Safe area with additional padding */
+  .safe-area-pb {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+  
+  /* Mobile-first responsive sizes */
+  .responsive-text-hero {
+    @apply text-5xl md:text-6xl font-bold;
+  }
+  
+  .responsive-text-title {
+    @apply text-sm md:text-base font-semibold;
+  }
+  
+  .responsive-text-body {
+    @apply text-sm md:text-base;
+  }
+  
+  .responsive-text-caption {
+    @apply text-xs md:text-sm;
+  }
+  
+  /* Minimum touch target size (44x44px) */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
 }
 

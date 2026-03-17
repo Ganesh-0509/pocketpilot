@@ -192,7 +192,7 @@ function GoalDialog({ goal, children }: { goal?: Goal, children: React.ReactNode
                 }
               </AlertDescription>
             </Alert>
-            <Button type="submit" className="w-full">{isEditMode ? 'Save Changes' : 'Save Goal'}</Button>
+            <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">{isEditMode ? 'Save Changes' : 'Save Goal'}</Button>
           </form>
         </Form>
       </DialogContent>

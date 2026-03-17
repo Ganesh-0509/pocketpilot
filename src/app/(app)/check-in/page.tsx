@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { expenseCategories, Transaction } from '@/lib/types';
+import { EXPENSE_CATEGORY_VALUES, Transaction } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -50,7 +50,7 @@ export default function CheckInPage() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { toast } = useToast();
 
-  const categories = expenseCategories;
+  const categories = EXPENSE_CATEGORY_VALUES;
 
   const form = useForm<ExpenseValues>({
     resolver: zodResolver(expenseSchema),
@@ -240,7 +240,7 @@ export default function CheckInPage() {
                     )}
                   />
                 </div>
-                <Button type="submit" className="w-full">Add Transaction</Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">Add Transaction</Button>
               </form>
             </Form>
           </CardContent>

@@ -123,8 +123,8 @@ export function SmartDailyBriefing() {
                 }
 
                 // Define category mappings (aligned with chatbot)
-                const needsCategories = ['Groceries', 'Transport', 'Utilities', 'Rent/EMI', 'Healthcare', 'Education'];
-                const wantsCategories = ['Food & Dining', 'Shopping', 'Entertainment', 'Other'];
+                const needsCategories = ['Food & Canteen', 'Auto / Metro / Bus', 'Hostel & Room', 'Books & Stationery', 'Medical & Pharmacy', 'Mobile Recharge', 'Sent to Family'];
+                const wantsCategories = ['Apps & Subscriptions', 'Clothing', 'Fest & Events', 'Movies & Hangouts', 'Other'];
 
                 const essentialExpensesLogged = transactions
                     .filter(t => isSameMonth(new Date(t.date), now) && needsCategories.includes(t.category))

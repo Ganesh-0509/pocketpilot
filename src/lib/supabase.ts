@@ -1,6 +1,69 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/auth-helpers-nextjs';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function assertPublicEnv() {
+	if (!supabaseUrl) {
+		throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL. Add it to .env.local.');
+	}
+	if (!supabaseAnonKey) {
+		throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Add it to .env.local.');
+	}
+}
+
+export function createSupabaseBrowserClient(): SupabaseClient {
+	return createClientComponentClient();
+}
+
+export function createClientComponentClient(): SupabaseClient {
+	assertPublicEnv();
+	return createClient(supabaseUrl!, supabaseAnonKey!);
+}
+
+export function createServerComponentClient(cookieStore: any): SupabaseClient {
+	assertPublicEnv();
+	return createServerClient(supabaseUrl!, supabaseAnonKey!, {
+		cookies: {
+			getAll() {
+				if (typeof cookieStore?.getAll === 'function') {
+					return cookieStore.getAll();
+				}
+				return [];
+			},
+			setAll(cookiesToSet: any[]) {
+				if (typeof cookieStore?.set !== 'function') {
+					return;
+				}
+
+				cookiesToSet.forEach(({ name, value, options }) => {
+					cookieStore.set(name, value, options);
+				});
+			},
+		},
+	});
+}
+
+export function createSupabaseServerClient(cookies: any): SupabaseClient {
+	return createServerComponentClient(cookies);
+}
+
+export function createSupabaseAdminClient(): SupabaseClient {
+	assertPublicEnv();
+	if (!supabaseServiceRoleKey) {
+		throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY. Add it to .env.local.');
+	}
+
+	return createClient(supabaseUrl!, supabaseServiceRoleKey, {
+		auth: {
+			autoRefreshToken: false,
+			persistSession: false,
+		},
+	});
+}
+
+// Backward-compatible client used by existing client-side modules.
+assertPublicEnv();
+export const supabase = createClient(supabaseUrl!, supabaseAnonKey!);

@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { hasCompletedOnboarding } from '@/lib/db/profile';
+import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 const loginSchema = z.object({
@@ -26,10 +28,31 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const supabase = createClientComponentClient();
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
+
+  const mapAuthError = (error: any): string => {
+    const message = error?.message || 'An unexpected error occurred';
+    
+    // Map common Supabase auth errors to user-friendly messages
+    if (message.includes('Invalid login credentials')) {
+      return 'Email or password is incorrect. Please try again.';
+    }
+    if (message.includes('Email not confirmed')) {
+      return 'Please confirm your email before signing in.';
+    }
+    if (message.includes('User not found')) {
+      return 'No account found with this email. Please sign up first.';
+    }
+    if (message.includes('too many requests')) {
+      return 'Too many login attempts. Please try again later.';
+    }
+    
+    return message;
+  };
 
   const onSubmit = async (data: LoginValues) => {
     setIsLoading(true);
@@ -41,38 +64,54 @@ export default function LoginPage() {
 
       if (error) throw error;
       
-      const user = authData.user;
-      const who = user?.user_metadata?.name ?? user?.email ?? 'Unknown user';
+      if (!authData.user) {
+        throw new Error('Authentication succeeded but no user found');
+      }
+
+      // Check if user has completed onboarding
+      const hasOnboarded = await hasCompletedOnboarding(authData.user.id);
+      
+      const who = authData.user?.user_metadata?.name ?? authData.user?.email ?? 'Unknown user';
       toast({
         title: 'Signed in',
-        description: `Signed in as ${who}`,
+        description: `Welcome back, ${who}!`,
       });
-      router.push('/dashboard');
+
+      // Redirect based on onboarding status
+      if (hasOnboarded) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
     } catch (error: any) {
+      const friendlyMessage = mapAuthError(error);
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message || 'An unexpected error occurred.',
+        description: friendlyMessage,
       });
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       if (error) throw error;
     } catch (error: any) {
+      const friendlyMessage = mapAuthError(error);
       toast({
         variant: 'destructive',
         title: 'Google Login Failed',
-        description: error.message || 'An unexpected error occurred.',
+        description: friendlyMessage,
       });
+      setIsLoading(false);
     }
   };
 
@@ -81,8 +120,8 @@ export default function LoginPage() {
       <CardHeader className="text-center">
         <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center mx-auto">
           <Image
-            src="/FINMATE.png"
-            alt="FinMate"
+            src="/PocketPilot.png"
+            alt="PocketPilot"
             width={36}
             height={36}
             style={{ width: 'auto', height: 'auto' }}
@@ -90,7 +129,7 @@ export default function LoginPage() {
           />
         </div>
         <CardTitle className="mt-4">Welcome Back!</CardTitle>
-        <CardDescription>Sign in to continue to FinMate</CardDescription>
+        <CardDescription>Sign in to continue to PocketPilot</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -127,7 +166,14 @@ export default function LoginPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </Button>
           </form>
           
