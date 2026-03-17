@@ -134,22 +134,34 @@ export default function CheckInPage() {
                   <MicRecorder
                     targetForm="expense"
                     onResult={({ text, parsed }) => {
-                      if (parsed && parsed.description && (parsed.amount || parsed.amount === 0)) {
-                        const cat = parsed.categoryNormalized || parsed.category || 'Other';
-                        addTransaction({
-                          description: parsed.description,
-                          amount: Number(parsed.amount),
-                          category: cat,
-                          date: formatISO(new Date()),
-                        });
-                        toast({ title: 'Expense added from voice', description: `${parsed.description} — ${cat}` });
-                        form.reset({ amount: 0, category: '', description: '' });
-                      } else {
-                        const reason = !parsed ? 'Could not parse voice' : (!parsed.description ? 'Missing description' : 'Missing amount');
+                      if (parsed && typeof parsed === 'object' && parsed !== null) {
+                        const parsedObj = parsed as Record<string, unknown>;
+                        const description = typeof parsedObj.description === 'string' ? parsedObj.description : '';
+                        const amount = parsedObj.amount === null || parsedObj.amount === undefined ? undefined : Number(parsedObj.amount);
+                        const category = typeof parsedObj.categoryNormalized === 'string' ? parsedObj.categoryNormalized : (typeof parsedObj.category === 'string' ? parsedObj.category : 'Other');
+                        
+                        if (description && (amount || amount === 0)) {
+                          addTransaction({
+                            description: description,
+                            amount: amount,
+                            category: category,
+                            date: formatISO(new Date()),
+                          });
+                          toast({ title: 'Expense added from voice', description: `${description} — ${category}` });
+                          form.reset({ amount: 0, category: '', description: '' });
+                        } else {
+                          const reason = !parsed ? 'Could not parse voice' : (!description ? 'Missing description' : 'Missing amount');
                         toast({
                           variant: "destructive",
                           title: "Voice capture failed",
                           description: `${reason}. Try speaking clearly: "Spent 500 on dinner".`,
+                          });
+                        }
+                      } else {
+                        toast({
+                          variant: "destructive",
+                          title: "Voice parsing failed",
+                          description: "Could not parse expense details from your voice. Please enter manually.",
                         });
                       }
                     }}

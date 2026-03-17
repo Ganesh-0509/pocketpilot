@@ -182,7 +182,7 @@ export class SupabaseService {
   static async getSemesterLiabilities(userId: string): Promise<SemesterLiability[]> {
     const { data, error } = await supabase
       .from('semester_liabilities')
-      .select('id,user_id,title,amount,due_date,category,created_at')
+      .select('id,user_id,title,amount,due_date,is_paid,category,created_at')
       .eq('user_id', userId)
       .order('due_date', { ascending: true });
 
@@ -232,10 +232,10 @@ export class SupabaseService {
   /**
    * Logged Payments Methods
    */
-  static async saveLoggedPayments(userId: string, payments: any): Promise<void> {
+  static async saveLoggedPayments(userId: string, payments: Record<string, boolean>): Promise<void> {
     // Payments object mapping e.g: { "expenseId-YYYY-MM": true }
     // Clean and insert into tabular format
-    const inserts: any[] = [];
+    const inserts: Array<{ user_id: string; expense_id: string; month: string }> = [];
     for (const key of Object.keys(payments)) {
        // Assuming split by "-"
        const parts = key.split('-');
@@ -260,7 +260,7 @@ export class SupabaseService {
     }
   }
 
-  static async getLoggedPayments(userId: string): Promise<any> {
+  static async getLoggedPayments(userId: string): Promise<Record<string, boolean>> {
     const { data, error } = await supabase
       .from('logged_payments')
       .select('user_id,expense_id,month')
@@ -271,8 +271,8 @@ export class SupabaseService {
       return {};
     }
 
-    const dict: any = {};
-    (data || []).forEach(row => {
+    const dict: Record<string, boolean> = {};
+    (data || []).forEach((row: { expense_id: string; month: string }) => {
       dict[`${row.expense_id}-${row.month}`] = true;
     });
     return dict;

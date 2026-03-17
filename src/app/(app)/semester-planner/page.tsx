@@ -3,8 +3,8 @@ import { parseISO } from 'date-fns';
 import { createServerComponentClient } from '@/lib/supabase';
 import { SupabaseService } from '@/lib/supabase-service';
 import { computeDailySummary } from '@/lib/dailyEngine';
-import type { StudentProfile, Expense, SemesterLiability } from '@/lib/dailyEngine';
-import type { Transaction } from '@/lib/types';
+import type { StudentProfile, Expense, SemesterLiability as DailyEngineSemesterLiability } from '@/lib/dailyEngine';
+import type { Transaction, SemesterLiability, UserProfile } from '@/lib/types';
 import { redirect } from 'next/navigation';
 
 import { TopImpactCard } from './_components/top-impact-card';
@@ -51,7 +51,7 @@ function convertToExpenses(transactions: Transaction[]): Expense[] {
   }));
 }
 
-function convertToStudentProfile(profile: any): StudentProfile {
+function convertToStudentProfile(profile: UserProfile): StudentProfile {
   const semStart = profile.semesterStartDate
     ? typeof profile.semesterStartDate === 'string'
       ? parseISO(profile.semesterStartDate)
@@ -72,14 +72,12 @@ function convertToStudentProfile(profile: any): StudentProfile {
   };
 }
 
-function convertToSemesterLiabilities(liabilities: any[]): Array<SemesterLiability & { title?: string; category?: string }> {
+function convertToSemesterLiabilities(liabilities: SemesterLiability[]): DailyEngineSemesterLiability[] {
   return liabilities.map((l) => ({
     id: l.id,
     amount: l.amount,
     dueDate: typeof l.dueDate === 'string' ? parseISO(l.dueDate) : l.dueDate,
     isPaid: l.isPaid || false,
-    title: l.title,
-    category: l.category,
   }));
 }
 

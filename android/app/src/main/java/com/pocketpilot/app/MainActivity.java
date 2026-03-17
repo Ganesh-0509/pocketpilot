@@ -1,4 +1,4 @@
-package com.finmate.app;
+package com.pocketpilot.app;
 
 import com.getcapacitor.BridgeActivity;
 

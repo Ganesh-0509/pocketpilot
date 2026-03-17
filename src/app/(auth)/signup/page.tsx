@@ -35,8 +35,8 @@ export default function SignupPage() {
     defaultValues: { name: '', email: '', password: '' },
   });
 
-  const mapAuthError = (error: any): string => {
-    const message = error?.message || 'An unexpected error occurred';
+  const mapAuthError = (error: unknown): string => {
+    const message = error instanceof Error ? error.message : (typeof error === 'object' && error !== null && 'message' in error ? String((error as Record<string, unknown>).message) : 'An unexpected error occurred');
     
     // Map common Supabase auth errors to user-friendly messages
     if (message.includes('already registered')) {
@@ -85,8 +85,9 @@ export default function SignupPage() {
           semester_start_date: new Date().toISOString(),
           semester_end_date: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString(),
         });
-      } catch (profileError: any) {
-        console.error('Profile creation error:', profileError);
+      } catch (profileError: unknown) {
+        const msg = profileError instanceof Error ? profileError.message : 'Unknown error';
+        console.error('Profile creation error:', msg);
         // Don't throw - profile creation is secondary to auth
         // User can complete onboarding to set up profile details
       }

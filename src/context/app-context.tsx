@@ -73,7 +73,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user || null;
-      console.log('Auth state changed:', currentUser ? `User ${currentUser.id} logged in` : 'No user');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Auth state changed:', currentUser ? `User ${currentUser.id} logged in` : 'No user');
+      }
       setUser(currentUser);
       if (currentUser) {
         try {
@@ -143,11 +145,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => { subscription.unsubscribe(); };
   }, []);
 
-  const persistState = (key: string, value: any) => {
+  const persistState = (key: string, value: unknown) => {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error(`Failed to persist ${key} to localStorage`, error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`Failed to persist ${key} to localStorage`, error);
+      }
     }
   };
 
@@ -195,13 +199,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       };
 
       // Debug log before saving
-      console.log('About to save profile:', JSON.stringify(updatedProfile, null, 2));
+      if (process.env.NODE_ENV === 'development') {
+        console.log('About to save profile:', JSON.stringify(updatedProfile, null, 2));
+      }
 
       await SupabaseService.updateProfile(user.id, updatedProfile);
       setProfile(updatedProfile);
       setOnboardingComplete(true);
 
-      console.log('Profile saved successfully');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Profile saved successfully');
+      }
       toast({
         title: "Success",
         description: "Profile updated successfully"

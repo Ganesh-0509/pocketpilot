@@ -223,29 +223,41 @@ export async function recordAICall(userId: string, response: string): Promise<vo
 /**
  * Sanitize all expense form fields.
  */
-export function sanitizeExpenseInput(data: any) {
+export function sanitizeExpenseInput(data: unknown) {
+  if (typeof data !== 'object' || data === null) {
+    return { note: undefined };
+  }
+  const obj = data as Record<string, unknown>;
   return {
-    ...data,
-    note: data.note ? sanitizeDescription(data.note, 200) : undefined,
+    ...obj,
+    note: typeof obj.note === 'string' ? sanitizeDescription(obj.note, 200) : undefined,
   };
 }
 
 /**
  * Sanitize all liability form fields.
  */
-export function sanitizeLiabilityInput(data: any) {
+export function sanitizeLiabilityInput(data: unknown) {
+  if (typeof data !== 'object' || data === null) {
+    return { title: '' };
+  }
+  const obj = data as Record<string, unknown>;
   return {
-    ...data,
-    title: sanitizeTitle(data.title, 100),
+    ...obj,
+    title: typeof obj.title === 'string' ? sanitizeTitle(obj.title, 100) : '',
   };
 }
 
 /**
  * Sanitize onboarding form fields.
  */
-export function sanitizeOnboardingInput(data: any) {
+export function sanitizeOnboardingInput(data: unknown) {
+  if (typeof data !== 'object' || data === null) {
+    return { college_name: '' };
+  }
+  const obj = data as Record<string, unknown>;
   return {
-    ...data,
-    college_name: sanitizeTitle(data.college_name, 100),
+    ...obj,
+    college_name: typeof obj.college_name === 'string' ? sanitizeTitle(obj.college_name, 100) : '',
   };
 }

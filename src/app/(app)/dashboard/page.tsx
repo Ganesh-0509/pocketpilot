@@ -3,8 +3,8 @@ import { format, parseISO, subDays, startOfDay } from 'date-fns';
 import { createServerComponentClient } from '@/lib/supabase';
 import { SupabaseService } from '@/lib/supabase-service';
 import { computeDailySummary } from '@/lib/dailyEngine';
-import type { StudentProfile, Expense, SemesterLiability } from '@/lib/dailyEngine';
-import type { Transaction } from '@/lib/types';
+import type { StudentProfile, Expense, SemesterLiability as DailyEngineSemesterLiability } from '@/lib/dailyEngine';
+import type { Transaction, SemesterLiability, UserProfile } from '@/lib/types';
 import { redirect } from 'next/navigation';
 
 import { SurvivalModeBanner } from './_components/survival-mode-banner';
@@ -14,6 +14,7 @@ import { WeekendSpikeAlert } from './_components/weekend-spike-alert';
 import { UpcomingLiabilitiesSection } from './_components/upcoming-liabilities-section';
 import { BurnRateChart } from './_components/burn-rate-chart';
 import { QuickLogButton } from './_components/quick-log-button';
+import { DashboardWrapper } from './_components/dashboard-wrapper';
 
 async function getDashboardData() {
   const cookieStore = await cookies();
@@ -55,7 +56,7 @@ function convertToExpenses(transactions: Transaction[]): Expense[] {
   }));
 }
 
-function convertToStudentProfile(profile: any): StudentProfile {
+function convertToStudentProfile(profile: UserProfile): StudentProfile {
   const semStart = profile.semesterStartDate
     ? typeof profile.semesterStartDate === 'string'
       ? parseISO(profile.semesterStartDate)
@@ -76,13 +77,12 @@ function convertToStudentProfile(profile: any): StudentProfile {
   };
 }
 
-function convertToSemesterLiabilities(liabilities: any[]): Array<SemesterLiability & { title?: string }> {
+function convertToSemesterLiabilities(liabilities: SemesterLiability[]): DailyEngineSemesterLiability[] {
   return liabilities.map((l) => ({
     id: l.id,
     amount: l.amount,
     dueDate: typeof l.dueDate === 'string' ? parseISO(l.dueDate) : l.dueDate,
     isPaid: l.isPaid || false,
-    title: l.title,
   }));
 }
 
@@ -112,15 +112,25 @@ function getLast7DaysExpenses(expenses: Expense[]): Array<{
   return last7;
 }
 
-function getUpcoming14DaysLiabilities(liabilities: SemesterLiability[]): SemesterLiability[] {
+function getUpcoming14DaysLiabilities(
+  liabilities: SemesterLiability[]
+): Array<{ id: string; amount: number; dueDate: Date; isPaid: boolean; title?: string }> {
   const now = new Date();
   const in14Days = new Date(now);
   in14Days.setDate(in14Days.getDate() + 14);
 
-  return liabilities.filter((l) => {
-    const dueDate = l.dueDate;
-    return !l.isPaid && dueDate >= now && dueDate <= in14Days;
-  });
+  return liabilities
+    .filter((l) => {
+      const dueDate = typeof l.dueDate === 'string' ? parseISO(l.dueDate) : l.dueDate;
+      return !l.isPaid && dueDate >= now && dueDate <= in14Days;
+    })
+    .map((l) => ({
+      id: l.id,
+      amount: l.amount,
+      dueDate: typeof l.dueDate === 'string' ? parseISO(l.dueDate) : l.dueDate,
+      isPaid: l.isPaid || false,
+      title: l.title,
+    }));
 }
 
 export default async function DashboardPage() {
@@ -129,59 +139,64 @@ export default async function DashboardPage() {
   // Convert to types expected by dailyEngine
   const expenses = convertToExpenses(transactions);
   const studentProfile = convertToStudentProfile(profile);
-  const semesterLiabilities = convertToSemesterLiabilities(liabilities);
+  const semesterLiabilitiesForEngine = convertToSemesterLiabilities(liabilities);
 
-  // Compute daily summary
-  const dailySummary = computeDailySummary(studentProfile, semesterLiabilities, expenses);
+  // Compute daily summary (using engine format)
+  const dailySummary = computeDailySummary(studentProfile, semesterLiabilitiesForEngine, expenses);
 
   // Prepare chart data
   const chartData = getLast7DaysExpenses(expenses);
 
-  // Get upcoming liabilities (within 14 days)
-  const upcomingLiabilities = getUpcoming14DaysLiabilities(semesterLiabilities);
+  // Get upcoming liabilities (within 14 days) - use original format for display
+  const upcomingLiabilities = getUpcoming14DaysLiabilities(liabilities);
 
   return (
-    <main className="space-y-6 pb-32 pt-4">
-      {/* Survival Mode Banner */}
-      {dailySummary.isSurvivalMode && (
-        <SurvivalModeBanner
-          dailyLimit={dailySummary.safeDailyLimit}
+    <DashboardWrapper
+      remainingBudget={dailySummary.adjustedRemaining}
+      daysRemaining={dailySummary.daysRemaining}
+    >
+      <main className="space-y-6 pb-32 pt-4">
+        {/* Survival Mode Banner */}
+        {dailySummary.isSurvivalMode && (
+          <SurvivalModeBanner
+            dailyLimit={dailySummary.safeDailyLimit}
+            daysRemaining={dailySummary.daysRemaining}
+          />
+        )}
+
+        {/* Hero Card */}
+        <HeroCard
+          safeDailyLimit={dailySummary.safeDailyLimit}
+          todaySpend={dailySummary.todaySpend}
+          burnRateStatus={dailySummary.burnRateStatus}
+        />
+
+        {/* Secondary Stats Row */}
+        <SecondaryStatsRow
+          remainingBudget={dailySummary.adjustedRemaining}
           daysRemaining={dailySummary.daysRemaining}
+          monthEndPredictionDay={dailySummary.monthEndPredictionDay}
         />
-      )}
 
-      {/* Hero Card */}
-      <HeroCard
-        safeDailyLimit={dailySummary.safeDailyLimit}
-        todaySpend={dailySummary.todaySpend}
-        burnRateStatus={dailySummary.burnRateStatus}
-      />
+        {/* Weekend Spike Alert */}
+        {dailySummary.weekendSpikeFactor && dailySummary.weekendSpikeFactor > 1.5 && (
+          <WeekendSpikeAlert spikeFactor={dailySummary.weekendSpikeFactor} />
+        )}
 
-      {/* Secondary Stats Row */}
-      <SecondaryStatsRow
-        remainingBudget={dailySummary.adjustedRemaining}
-        daysRemaining={dailySummary.daysRemaining}
-        monthEndPredictionDay={dailySummary.monthEndPredictionDay}
-      />
+        {/* Upcoming Liabilities Section */}
+        {upcomingLiabilities.length > 0 && (
+          <UpcomingLiabilitiesSection
+            liabilities={upcomingLiabilities}
+            dailyLimit={dailySummary.safeDailyLimit}
+          />
+        )}
 
-      {/* Weekend Spike Alert */}
-      {dailySummary.weekendSpikeFactor && dailySummary.weekendSpikeFactor > 1.5 && (
-        <WeekendSpikeAlert spikeFactor={dailySummary.weekendSpikeFactor} />
-      )}
+        {/* Burn Rate Chart */}
+        <BurnRateChart data={chartData} dailyLimit={dailySummary.safeDailyLimit} />
 
-      {/* Upcoming Liabilities Section */}
-      {upcomingLiabilities.length > 0 && (
-        <UpcomingLiabilitiesSection
-          liabilities={upcomingLiabilities as any}
-          dailyLimit={dailySummary.safeDailyLimit}
-        />
-      )}
-
-      {/* Burn Rate Chart */}
-      <BurnRateChart data={chartData} dailyLimit={dailySummary.safeDailyLimit} />
-
-      {/* Quick Log Button */}
-      <QuickLogButton />
-    </main>
+        {/* Quick Log Button */}
+        <QuickLogButton />
+      </main>
+    </DashboardWrapper>
   );
 }

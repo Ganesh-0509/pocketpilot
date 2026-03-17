@@ -30,6 +30,7 @@ export interface SemesterLiability {
   amount: number;
   dueDate: string; // ISO string
   category: SemesterLiabilityCategory;
+  isPaid?: boolean;
   createdAt: string; // ISO string
 }
 
@@ -61,6 +62,8 @@ export interface UserProfile {
   livingType: LivingType;
   monthlyIncome: number; // Pocket money/stipend
   internshipIncome?: number;
+  semesterStartDate?: string; // ISO string
+  semesterEndDate?: string; // ISO string
   recurringExpenses: RecurringExpense[];
   semesterFees?: SemesterFee[];
   fixedExpenses: FixedExpense[]; // Keep for backward compatibility during migration

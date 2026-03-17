@@ -3,6 +3,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { SemesterLiabilityCategory } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,10 +54,8 @@ import {
 } from "lucide-react";
 import { format, differenceInDays, parse } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { createProfile } from "@/lib/db/profile";
 import { addLiability } from "@/lib/db/liabilities";
-import { useAuth } from "@/context/AuthContext";
 import { EXPENSE_CATEGORY_VALUES } from "@/lib/types";
 
 // Zod schemas for each step
@@ -131,7 +132,7 @@ export default function OnboardingPage() {
   });
 
   // Form for current step
-  const form = useForm<any>({
+  const form = useForm({
     mode: "onChange",
   });
 
@@ -258,7 +259,7 @@ export default function OnboardingPage() {
           title: liability.title,
           amount: liability.amount,
           due_date: liability.dueDate,
-          category: liability.category as any,
+          category: liability.category as SemesterLiabilityCategory,
         });
       }
 
@@ -269,13 +270,14 @@ export default function OnboardingPage() {
       setTimeout(() => {
         router.push("/dashboard");
       }, 1500);
-    } catch (error: any) {
-      console.error("Onboarding error:", error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error("Onboarding error:", message);
       toast({
         variant: "destructive",
         title: "Setup Failed",
         description:
-          error.message ||
+          message ||
           "There was an error saving your profile. Please try again.",
       });
       setIsSubmitting(false);

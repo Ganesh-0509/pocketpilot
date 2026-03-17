@@ -23,30 +23,29 @@ export function createClientComponentClient(): SupabaseClient {
 	return createClient(supabaseUrl!, supabaseAnonKey!);
 }
 
-export function createServerComponentClient(cookieStore: any): SupabaseClient {
+export function createServerComponentClient(cookieStore: unknown): SupabaseClient {
 	assertPublicEnv();
 	return createServerClient(supabaseUrl!, supabaseAnonKey!, {
 		cookies: {
 			getAll() {
-				if (typeof cookieStore?.getAll === 'function') {
-					return cookieStore.getAll();
+				if (typeof cookieStore === 'object' && cookieStore !== null && 'getAll' in cookieStore && typeof (cookieStore as Record<string, unknown>).getAll === 'function') {
+					return ((cookieStore as Record<string, unknown>).getAll as () => Array<{ name: string; value: string }>)();
 				}
 				return [];
 			},
-			setAll(cookiesToSet: any[]) {
-				if (typeof cookieStore?.set !== 'function') {
+			setAll(cookiesToSet: Array<{ name: string; value: string; options?: unknown }>) {
+				if (typeof cookieStore !== 'object' || cookieStore === null || typeof (cookieStore as Record<string, unknown>).set !== 'function') {
 					return;
 				}
-
 				cookiesToSet.forEach(({ name, value, options }) => {
-					cookieStore.set(name, value, options);
+					(cookieStore as Record<string, unknown>).set(name, value, options);
 				});
 			},
 		},
 	});
 }
 
-export function createSupabaseServerClient(cookies: any): SupabaseClient {
+export function createSupabaseServerClient(cookies: unknown): SupabaseClient {
 	return createServerComponentClient(cookies);
 }
 

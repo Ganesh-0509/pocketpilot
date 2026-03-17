@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           config: (() => {
-            const cfg: any = {
+            const cfg: Record<string, unknown> = {
               encoding,
               // Force English transcription
               languageCode: 'en-US',
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       }
     );
     const textJson = await resp.text();
-    let json: any = null;
+    let json: Record<string, unknown> | null = null;
     try { json = JSON.parse(textJson); } catch (e) { json = { raw: textJson }; }
 
     if (!resp.ok) {
@@ -75,7 +75,8 @@ export async function POST(request: Request) {
     const transcript = json?.results?.[0]?.alternatives?.[0]?.transcript ?? '';
 
     return NextResponse.json({ text: transcript, raw: json });
-  } catch (err: any) {
-    return NextResponse.json({ error: String(err?.message ?? err) }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

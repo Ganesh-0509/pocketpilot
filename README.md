@@ -1,266 +1,140 @@
-# PocketPilot
+# 🚀 PocketPilot
 
-PocketPilot is a student-only AI financial survival app built to answer one question every day:
+> **The ultimate AI-powered financial survival app exclusively designed for students.**
 
-How much can I safely spend today without going broke tomorrow?
+PocketPilot answers the most critical question every student asks: **"How much can I safely spend today without going broke tomorrow?"**
 
-Core formula used across the app:
+By factoring in pocket money, living situations (hostel vs. day scholar), and upcoming college liabilities, PocketPilot dynamically calculates a real-time Daily Safe-to-Spend limit, helping students build lasting financial discipline without the guilt.
 
-Daily Safe-to-Spend = (Remaining Budget - Upcoming 30-day Liabilities) / Days Remaining
+---
 
-## What PocketPilot Does
+## ✨ Core Features
 
-- Calculates a real-time daily safe-to-spend number
-- Tracks student expenses with mobile-first check-ins
-- Reserves upcoming semester liabilities before discretionary spending
-- Generates AI-driven daily briefings and spending recommendations
-- Supports goals, emergency fund tracking, and gamified streaks/badges
-- Exports reports for personal review
+### 🏦 Dynamic "Safe-to-Spend" Engine
+Instead of rigid monthly budgets, PocketPilot calculates a daily limit based on what's left *after* reserving funds for upcoming semester liabilities. If you overspend today, tomorrow's limit gracefully adjusts.
 
-## Tech Stack
+### 🚨 Smart Survival Mode
+When your daily budget drops below a critical threshold (e.g., ₹100/day), PocketPilot automatically enters **Survival Mode**. The app shifts to a high-alert UI, providing rigorous cost-cutting advice to get you to the end of the month.
 
-- **Frontend**: Next.js 14 App Router + TypeScript + Tailwind CSS + shadcn/ui
-- **Backend**: Next.js API Routes
-- **Database**: Supabase (PostgreSQL + Auth + RLS)
-- **AI**: Google Genkit
-- **Charts**: Recharts
-- **Mobile**: Capacitor Android
+### 🤖 AI Financial Coach (Powered by Google Genkit)
+A context-aware AI coach that understands your current financial state. It generates hyper-personalized, ultra-short insights (under 60 words). Whether it notices a weekend spending spike, praises a 14-day savings streak, or offers survival tips, the AI adapts to your situation.
+
+### 🏆 Gamification & Streaks
+Building good habits should be fun. Earn unique badges and achievements for:
+- Maintaining multi-day streaks below your daily limit (*Week Warrior*, *Month Master*).
+- Advanced planning (*Semester Planner*, *Fees Ready*).
+- Successfully escaping Survival Mode.
+
+### 📅 Semester Liabilities Planner
+College life is full of surprise expenses. Log upcoming exams, textbooks, or trips in advance. PocketPilot automatically deducts these from your available budget so the money is always there when the due date arrives.
+
+### 📴 Offline-First Reliability
+Internet down on campus? No problem. Log an expense completely offline. PocketPilot queues the transaction locally and automatically syncs it securely to Supabase the moment your connection is restored.
+
+### 📱 Premium Mobile Experience
+PocketPilot is deployed directly to mobile via **Capacitor**, offering a deep native feel. Features include haptic touch feedback, fluid animations, dark-mode native aesthetics, and safe-area notch handling.
+
+---
+
+## 🛡️ Why PocketPilot? (Our Values)
+
+- **Student-Centric Context:** We ask if you're a hostel resident or day scholar because we know your expense patterns depend on it.
+- **Positive Reinforcement:** We don't just restrict you; we reward you via gamified badges and encouraging AI insights.
+- **Privacy First:** Row Level Security (RLS) guarantees your financial data is strictly yours.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind CSS + shadcn/ui + Framer Motion
+- **Backend**: Next.js API Routes + Server Actions
+- **Database / Auth**: Supabase (PostgreSQL + Auth + RLS Policies)
+- **AI Integration**: Google Genkit (gemini-1.5-flash)
+- **Mobile**: Capacitor (targeting Android & iOS)
 - **Validation**: Zod + React Hook Form
 
-## Quick Start
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+ and npm
 - A Supabase account (free tier works)
 - Google Cloud API credentials (for Genkit AI)
-- Android SDK (if building for Android)
 
-### Local Development Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/pocketpilot.git
-   cd pocketpilot
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables:**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Then edit `.env.local` with your credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   GOOGLE_GENAI_API_KEY=your-google-genai-key
-   ```
-
-4. **Set up Supabase database:**
-   - Go to your Supabase project dashboard
-   - Run the SQL setup from the Supabase SQL Editor
-   - Enable Row Level Security (RLS) on all tables
-   - Create the necessary auth schema
-
-5. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   
-   Open [http://localhost:3000](http://localhost:3000) in your browser
-
-### Available Scripts
-
+### 1. Local Setup Check
 ```bash
-# Development server with hot reload
-npm run dev
-
-# Type checking
-npm run typecheck
-
-# Production build
-npm run build
-
-# Start production server
-npm run start
-
-# ESLint linting
-npm run lint
+git clone https://github.com/your-username/pocketpilot.git
+cd pocketpilot
+npm install
 ```
 
-## Environment Variables Reference
+### 2. Environment Variables
+Copy the example file and fill in your keys:
+```bash
+cp .env.example .env.local
+```
+Add your credentials to `.env.local`:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+GOOGLE_GENAI_API_KEY=your-google-genai-key
+```
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous key (safe for client) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (secret, server-only) |
-| `GOOGLE_GENAI_API_KEY` | Yes | Google Genkit API key for AI features |
-| `NEXT_PUBLIC_APP_URL` | No | App URL for redirects (default: http://localhost:3000) |
-| `NODE_ENV` | No | Environment (development/production) |
+### 3. Database Initialization
+Run the provided `supabase_schema.sql` file in your Supabase project's SQL editor to generate the necessary tables (`profiles`, `expenses`, `semester_liabilities`, `badges`) and their respective RLS constraints.
 
-### Getting Credentials
+### 4. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) heavily optimized for mobile viewing.
 
-**Supabase:**
-1. Create a free account at https://supabase.com
-2. Create a new project
-3. Go to Settings > API to find your URL and keys
-4. Copy the `NEXT_PUBLIC_SUPABASE_ANON_KEY` (safe for client)
-5. Copy the `SUPABASE_SERVICE_ROLE_KEY` (keep secret!)
+---
 
-**Google Genkit:**
-1. Enable Google AI at https://ai.google.dev/
-2. Create an API key
-3. Set it as `GOOGLE_GENAI_API_KEY`
+## 📱 Building for Android (Capacitor)
 
-## Building for Android with Capacitor
+PocketPilot handles native features smoothly. To build the mobile APK:
 
-### Prerequisites
-- Android SDK (API level 21+)
-- Java Development Kit (JDK) 11+
-- Android Studio (recommended)
-
-### Build Steps
-
-1. **Prepare web build:**
+1. **Build the web assets:**
    ```bash
    npm run build
    ```
-
-2. **Sync Capacitor:**
+2. **Sync the project to Capacitor:**
    ```bash
    npx cap sync android
    ```
-
-3. **Open in Android Studio:**
+3. **Open in Android Studio to compile:**
    ```bash
    npx cap open android
    ```
+   *Note: Ensure you have Android SDK (API 21+) and JDK 11+ installed.*
 
-4. **In Android Studio:**
-   - Select a device or create an emulator
-   - Click "Run" (or press Shift + F10)
+---
 
-5. **Configure signing for Play Store:**
-   - Create a signing key: `keytool -genkey -v -keystore release.jks ...`
-   - Update build.gradle with signing config
-   - Build release APK
+## 🔒 Security & Performance highlights
 
-### Capacitor Configuration
+- **Zero "any" Types**: Fully typed codebase guaranteeing payload accuracy.
+- **Zod Schema Boundaries**: All client side and server side boundaries are tightly guarded against malformed inputs to prevent Injection/XSS.
+- **Optimistic UI Updates**: Expense logging and check-offs appear instantly and revert cleanly on network failure.
+- **Client Caching**: Tanstack React Query manages fetching optimization to prevent unnecessary Supabase calls.
 
-Key settings in `capacitor.config.ts`:
-- App ID: `com.pocketpilot.app`
-- Status Bar: Dark mode, navy background
-- Plugins: StatusBar, PullToRefresh, Haptics, Keyboard, SafeArea
+---
 
-## Project Structure
+## 🤝 Contributing
 
-```
-/src
-  /app
-    /api              # API routes
-    /(auth)           # Authentication pages
-    /(app)            # Protected app pages
-  /components         # React components
-  /context            # Context providers
-  /hooks              # Custom React hooks
-  /lib                # Utilities and services
-  /types              # TypeScript types
-```
+We welcome community contributions! Please adhere to the following:
+1. Fork the project & create a feature branch.
+2. Maintain strict TypeScript definitions (no implicit `any`).
+3. Validate forms with existing Zod contexts.
+4. Pass linting and type-checking via `npm run typecheck` before submitting your PR.
 
-## Production Quality Features
+---
 
-✅ **TypeScript strict mode** - Full type safety
-✅ **Zod validation** - Runtime type validation on all forms
-✅ **React Query** - Server state management with caching
-✅ **Loading states** - UI skeletons on every page
-✅ **Error boundaries** - Graceful error handling
-✅ **Database RLS** - Row-level security for multi-tenant safety
-✅ **Rate limiting** - AI coaching call limits
-✅ **Input sanitization** - XSS/injection prevention
-✅ **Mobile optimized** - Capacitor + safe areas + 44×44px touch targets
-✅ **Dark mode** - Navy theme + light mode option
+## 📄 License & Support
 
-## Performance Optimizations
-
-- Code splitting with dynamic imports
-- Image optimization with Next.js Image
-- Server-side rendering for SEO
-- Database query optimization (no SELECT *)
-- Memoized calculations
-- Debounced API calls
-
-## Security
-
-- Supabase authentication with RLS
-- OAuth support (Google, GitHub)
-- Environment variable validation
-- Input sanitization and validation
-- HTTPS enforcement in production
-- Service role key kept server-side only
-
-## API Health Check
-
-Monitor app health:
-```bash
-curl http://localhost:3000/api/health
-```
-
-Response:
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-03-17T10:30:00Z",
-  "supabase": "connected",
-  "version": "1.0.0",
-  "environment": "development"
-}
-```
-
-## Troubleshooting
-
-### Port 3000 already in use
-```bash
-npm run dev -- -p 3001
-```
-
-### Supabase connection errors
-- Check `.env.local` has correct credentials
-- Verify Supabase project is active
-- Check network connectivity
-- Test: `curl $NEXT_PUBLIC_SUPABASE_URL`
-
-### Android build failed
-- Update Android SDK: `sdkmanager --update`
-- Clean build: `./gradlew clean`
-- Check Java version: `java -version` (should be 11+)
-
-### TypeScript errors
-```bash
-npm run typecheck
-```
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Create a feature branch
-2. Make your changes
-3. Run tests and type checking
-4. Submit a pull request
-
-## License
-
-MIT License - see LICENSE.md for details
-
-## Support
+PocketPilot is released under the **MIT License**.
 
 - 📧 Email: support@pocketpilot.app
-- 🐛 Bug reports: GitHub Issues
-- 💬 Discussions: GitHub Discussions
-- 📖 Documentation: /docs folder
+- 🐛 Issues: View [GitHub Issues](https://github.com/your-username/pocketpilot/issues)

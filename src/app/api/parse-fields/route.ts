@@ -132,7 +132,7 @@ export async function POST(request: Request) {
     };
 
     let resp: Response | null = null;
-    let json: any = null;
+    let json: Record<string, unknown> | null = null;
     let output = '';
 
     const primary = await callModel(primaryModel);
@@ -170,7 +170,7 @@ export async function POST(request: Request) {
     // --- Fallback handling ---
     if (!resp || !resp.ok) {
       console.error('[parse-fields] generative API failed', resp?.status ?? 'no-response', json);
-      const fallbackParsed: any = {};
+      const fallbackParsed: Record<string, unknown> = {};
       const fallbackAmount = ensureAmountFromText(text);
       if (fallbackAmount != null) fallbackParsed.amount = fallbackAmount;
       const cleaned = text.replace(/[\n\r]/g, ' ').replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
       '';
 
     // --- Parse JSON output ---
-    let parsed: any = {};
+    let parsed: Record<string, unknown> = {};
     try {
       const match = output.match(/\{[\s\S]*\}/);
       if (match) parsed = JSON.parse(match[0]);
@@ -249,8 +249,9 @@ export async function POST(request: Request) {
     parsed.category = normalizeCategory(parsed.category);
 
     return NextResponse.json({ parsed, raw: output, modelResponse: json });
-  } catch (err: any) {
-    console.error('[parse-fields] fatal error', err);
-    return NextResponse.json({ error: String(err?.message ?? err) }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[parse-fields] fatal error', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

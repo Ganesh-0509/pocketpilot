@@ -1,6 +1,6 @@
 export const DailyBriefingInputSchema = {};
-// Mock return type
-export type DailyBriefingInput = any;
+// Mock input type
+export type DailyBriefingInput = Record<string, unknown>;
 export type DailyBriefingOutput = {
     spendableToday: number;
     avoidCategory?: string;
@@ -10,7 +10,7 @@ export type DailyBriefingOutput = {
     reasoning: string;
 };
 
-export async function getDailyBriefing(input: any): Promise<DailyBriefingOutput> {
+export async function getDailyBriefing(input: DailyBriefingInput): Promise<DailyBriefingOutput> {
     // In a real mobile app, you would fetch the remote server here.
     // fetch('https://api.myapp.com/ai/daily-briefing', { body: JSON.stringify(input) ... })
 

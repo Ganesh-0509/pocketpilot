@@ -34,8 +34,8 @@ export default function LoginPage() {
     defaultValues: { email: '', password: '' },
   });
 
-  const mapAuthError = (error: any): string => {
-    const message = error?.message || 'An unexpected error occurred';
+  const mapAuthError = (error: unknown): string => {
+    const message = error instanceof Error ? error.message : (typeof error === 'object' && error !== null && 'message' in error ? String((error as Record<string, unknown>).message) : 'An unexpected error occurred');
     
     // Map common Supabase auth errors to user-friendly messages
     if (message.includes('Invalid login credentials')) {
@@ -83,7 +83,7 @@ export default function LoginPage() {
       } else {
         router.push('/onboarding');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const friendlyMessage = mapAuthError(error);
       toast({
         variant: 'destructive',
@@ -104,7 +104,7 @@ export default function LoginPage() {
         }
       });
       if (error) throw error;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const friendlyMessage = mapAuthError(error);
       toast({
         variant: 'destructive',

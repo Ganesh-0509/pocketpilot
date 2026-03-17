@@ -4,7 +4,7 @@ import React from 'react';
 // lazy/dynamic import of tesseract to avoid hard dependency at build time
 
 type OcrUploaderProps = {
-  onResult: (data: { text?: string; parsed?: any }) => void;
+  onResult: (data: { text?: string; parsed?: Record<string, unknown> | null }) => void;
   targetForm?: 'onboarding' | 'expense' | 'checkin';
 };
 

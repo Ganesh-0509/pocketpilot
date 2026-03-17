@@ -115,7 +115,9 @@ export function useOptimisticExpense(options?: UseOptimisticExpenseOptions) {
 
         // If network error, queue for later sync
         if (isNetworkError(error)) {
-          console.log('[Optimistic Update] Network error — queueing expense');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Optimistic Update] Network error — queueing expense');
+          }
 
           queueExpense({
             userId: expenseData.userId,

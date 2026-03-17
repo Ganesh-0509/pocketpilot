@@ -5,7 +5,7 @@ import Image from 'next/image';
 import micImg from './image.png';
 
 type MicRecorderProps = {
-  onResult: (data: { text?: string; parsed?: any }) => void;
+  onResult: (data: { text?: string; parsed?: Record<string, unknown> | null }) => void;
   targetForm?: 'onboarding' | 'expense';
   // optional custom image for the mic button
   imageSrc?: string;
@@ -88,7 +88,10 @@ export function MicRecorder({ onResult, targetForm = 'onboarding', imageSrc, ima
       mediaRef.current.stop();
       setRecording(false);
       // stop all tracks
-      (mediaRef.current as any).stream?.getTracks?.().forEach((t: any) => t.stop());
+      const stream = (mediaRef.current as { stream?: MediaStream }).stream;
+      if (stream) {
+        stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+      }
     }
   }
 

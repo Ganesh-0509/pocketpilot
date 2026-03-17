@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">FinMate</string>
-    <string name="title_activity_main">FinMate</string>
-    <string name="package_name">com.finmate.app</string>
-    <string name="custom_url_scheme">com.finmate.app</string>
+    <string name="app_name">PocketPilot</string>
+    <string name="title_activity_main">PocketPilot</string>
+    <string name="package_name">com.pocketpilot.app</string>
+    <string name="custom_url_scheme">com.pocketpilot.app</string>
 </resources>

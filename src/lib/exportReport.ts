@@ -7,7 +7,7 @@ type ReportInput = {
 };
 
 export function buildOrganizedReport({ profile, transactions = [], goals = [] }: ReportInput) {
-  const report: any = {
+  const report: Record<string, unknown> = {
     generatedAt: new Date().toISOString(),
     summary: {
       name: profile?.name ?? null,
@@ -32,12 +32,12 @@ export function buildOrganizedReport({ profile, transactions = [], goals = [] }:
   return report;
 }
 
-export function toJsonBlob(report: any) {
+export function toJsonBlob(report: Record<string, unknown>) {
   const json = JSON.stringify(report, null, 2);
   return new Blob([json], { type: 'application/json' });
 }
 
-export function transactionsToCsv(transactions: any[]) {
+export function transactionsToCsv(transactions: Transaction[]) {
   const headers = ['id', 'date', 'description', 'amount', 'category'];
   const rows = transactions.map((t) => headers.map((h) => {
     const v = t[h as keyof typeof t];

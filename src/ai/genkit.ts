@@ -15,7 +15,9 @@ export const ai = genkit({
   model: MODEL,
 });
 
-console.log(`[GenKit] Using model: ${MODEL}`);
+if (process.env.NODE_ENV === 'development') {
+  console.log(`[GenKit] Using model: ${MODEL}`);
+}
 
 export const config = {
   plugins: [

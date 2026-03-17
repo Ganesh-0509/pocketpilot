@@ -7,7 +7,9 @@ export function QuickLogButton() {
   const handleClick = () => {
     // TODO: Open expense logging modal
     // This will integrate with the modal system
-    console.log('Quick log expense clicked');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Quick log expense clicked');
+    }
   };
 
   return (

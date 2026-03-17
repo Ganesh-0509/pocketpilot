@@ -132,7 +132,9 @@ class OfflineQueueManager {
     queue.push(queuedExpense);
     this.saveQueue(queue);
 
-    console.log(`[Offline Queue] Added expense: ${queuedExpense.id}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Offline Queue] Added expense: ${queuedExpense.id}`);
+    }
     return queuedExpense;
   }
 
@@ -140,7 +142,9 @@ class OfflineQueueManager {
    * Handle coming online.
    */
   private handleOnline = async (): Promise<void> => {
-    console.log('[Offline Queue] Network restored — attempting sync...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Offline Queue] Network restored — attempting sync...');
+    }
     this.isOnline = true;
     this.notifyListeners();
     await this.flushQueue();
@@ -150,7 +154,9 @@ class OfflineQueueManager {
    * Handle going offline.
    */
   private handleOffline = (): void => {
-    console.log('[Offline Queue] Network lost — queuing expenses');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Offline Queue] Network lost — queuing expenses');
+    }
     this.isOnline = false;
     this.notifyListeners();
   };
@@ -160,7 +166,9 @@ class OfflineQueueManager {
    */
   async flushQueue(): Promise<void> {
     if (!this.isOnline || this.isSyncing) {
-      console.log('[Offline Queue] Skipping flush: offline or already syncing');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Offline Queue] Skipping flush: offline or already syncing');
+      }
       return;
     }
 
@@ -170,7 +178,9 @@ class OfflineQueueManager {
     try {
       const queue = this.getQueue();
       if (queue.length === 0) {
-        console.log('[Offline Queue] Queue is empty');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Offline Queue] Queue is empty');
+        }
         this.isSyncing = false;
         return;
       }
@@ -200,7 +210,9 @@ class OfflineQueueManager {
           }
 
           successfulIds.push(expense.id);
-          console.log(`[Offline Queue] Synced expense: ${expense.id}`);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[Offline Queue] Synced expense: ${expense.id}`);
+          }
         } catch (error) {
           logError(error, `Failed to sync expense: ${expense.id}`);
 
@@ -221,9 +233,11 @@ class OfflineQueueManager {
       const newQueue = failedExpenses;
       this.saveQueue(newQueue);
 
-      console.log(
-        `[Offline Queue] Sync complete: ${successfulIds.length} synced, ${newQueue.length} still pending`
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.log(
+          `[Offline Queue] Sync complete: ${successfulIds.length} synced, ${newQueue.length} still pending`
+        );
+      }
     } catch (error) {
       logError(error, 'Failed to flush offline queue');
     } finally {
@@ -252,7 +266,9 @@ class OfflineQueueManager {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY);
       this.notifyListeners();
-      console.log('[Offline Queue] Queue cleared');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Offline Queue] Queue cleared');
+      }
     }
   }
 

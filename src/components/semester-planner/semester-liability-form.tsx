@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarClock, Plus } from 'lucide-react';
-import { semesterLiabilityCategories } from '@/lib/types';
+import { semesterLiabilityCategories, type SemesterLiabilityCategory } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -19,7 +19,7 @@ const plannerSchema = z.object({
 type PlannerValues = z.infer<typeof plannerSchema>;
 
 interface Props {
-  onAdd: (values: { title: string; amount: number; dueDate: string; category: any }) => Promise<void>;
+  onAdd: (values: { title: string; amount: number; dueDate: string; category: SemesterLiabilityCategory }) => Promise<void>;
 }
 
 export function SemesterLiabilityForm({ onAdd }: Props) {

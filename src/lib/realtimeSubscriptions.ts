@@ -40,7 +40,9 @@ export function useRealtimeExpenses() {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('[Realtime] New expense detected:', payload.new);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[Realtime] New expense detected:', payload.new);
+            }
 
             // Invalidate related queries
             queryClient.invalidateQueries({ queryKey: queryKeys.expenses() });
@@ -63,7 +65,9 @@ export function useRealtimeExpenses() {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('[Realtime] Liability changed:', payload);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[Realtime] Liability changed:', payload);
+            }
 
             // Invalidate related queries
             queryClient.invalidateQueries({ queryKey: queryKeys.liabilities() });
